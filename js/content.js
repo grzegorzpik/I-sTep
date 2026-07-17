@@ -176,7 +176,15 @@ window.IStepContent = {
           },
         ],
       },
-      beacon: { id: 'bootcamp-0', label: 'Bootcamp:<br>integracja API' },
+      beacon: {
+        id: 'bootcamp-0',
+        label: 'Bootcamp:<br>integracja API',
+        title: 'Integracja z API',
+        eyebrowLesson: 'MODUŁ 0 · BOOTCAMP',
+        xp: 50,
+        goal:
+          'Dodaj lub przeanalizuj jedną integrację API w istniejącej aplikacji (np. reSave, Roślinna szłAppka). Po zakończeniu będziesz wiedział, co dokładnie dzieje się między kliknięciem a pojawieniem się danych na ekranie. Przy okazji dorzuć jeden nowy trik wizualny do tej zmiany.',
+      },
     },
   ],
 };

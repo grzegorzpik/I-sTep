@@ -94,7 +94,18 @@
 
       const isClickable = (entry.status === 'current' || entry.status === 'done') && !!entry.lesson.question;
       if (isClickable) {
-        node.addEventListener('click', () => openLessonModal(mod, entry.lesson, entry.status));
+        node.addEventListener('click', () => {
+          const isDone = entry.status === 'done';
+          openLessonModal({
+            eyebrow: mod.eyebrow,
+            title: entry.lesson.title || entry.lesson.label,
+            subtitle: isDone
+              ? 'Ukończona mikrolekcja — możesz ją powtórzyć, ale bez dodatkowego XP.'
+              : `Nowa mikrolekcja · +${entry.lesson.xp || 10} XP za zaliczenie.`,
+            startLabel: isDone ? 'Przećwicz ponownie' : 'Rozpocznij',
+            href: `lekcja.html?lesson=${encodeURIComponent(entry.lesson.id)}`,
+          });
+        });
       } else {
         node.style.cursor = 'default';
       }
@@ -122,7 +133,18 @@
 
       const quizClickable = (quizStatus === 'current' || quizStatus === 'done') && !!mod.quiz.questions?.length;
       if (quizClickable) {
-        node.addEventListener('click', () => openLessonModal(mod, mod.quiz, quizStatus));
+        node.addEventListener('click', () => {
+          const isDone = quizStatus === 'done';
+          openLessonModal({
+            eyebrow: mod.eyebrow,
+            title: mod.quiz.title || mod.quiz.label,
+            subtitle: isDone
+              ? 'Ukończony quiz — możesz go powtórzyć, ale bez dodatkowego XP.'
+              : `Sprawdzian modułu · +${mod.quiz.xp || 20} XP za zaliczenie.`,
+            startLabel: isDone ? 'Przećwicz ponownie' : 'Rozpocznij',
+            href: `lekcja.html?lesson=${encodeURIComponent(mod.quiz.id)}`,
+          });
+        });
       } else {
         node.style.cursor = 'default';
       }
@@ -141,11 +163,28 @@
       const row = document.createElement('div');
       row.className = 'node-row center';
       row.style.minHeight = '150px';
+      const beaconDone = state.isLessonDone(mod.beacon.id);
       const node = document.createElement('div');
-      node.className = `node beacon ${beaconUnlocked ? 'current' : 'locked'}`;
+      node.className = `node beacon ${beaconDone ? 'done' : beaconUnlocked ? 'current' : 'locked'}`;
       node.setAttribute('data-point', '');
-      node.style.cursor = 'default';
       node.innerHTML = `<div class="core">${BEACON_ICON}</div><div class="label">${mod.beacon.label}</div>`;
+
+      if (beaconUnlocked) {
+        node.addEventListener('click', () => {
+          openLessonModal({
+            eyebrow: mod.eyebrow,
+            title: mod.beacon.title || 'Bootcamp',
+            subtitle: beaconDone
+              ? 'Ukończony bootcamp — możesz wrócić i przejrzeć zadanie ponownie, bez dodatkowego XP.'
+              : `Bootcamp modułu · +${mod.beacon.xp || 50} XP po ukończeniu.`,
+            startLabel: beaconDone ? 'Wróć do zadania' : 'Rozpocznij',
+            href: `bootcamp.html?module=${encodeURIComponent(mod.id)}`,
+          });
+        });
+      } else {
+        node.style.cursor = 'default';
+      }
+
       row.appendChild(node);
       nodesEl.appendChild(row);
     }
@@ -188,18 +227,15 @@
     `;
   }
 
-  function openLessonModal(mod, lesson, status) {
-    const isDone = status === 'done';
-    document.getElementById('modalEyebrow').textContent = mod.eyebrow;
-    document.getElementById('modalTitle').textContent = lesson.title || lesson.label;
-    document.getElementById('modalSub').textContent = isDone
-      ? 'Ukończona mikrolekcja — możesz ją powtórzyć, ale bez dodatkowego XP.'
-      : `Nowa mikrolekcja · +${lesson.xp || 10} XP za zaliczenie.`;
+  function openLessonModal({ eyebrow, title, subtitle, startLabel, href }) {
+    document.getElementById('modalEyebrow').textContent = eyebrow;
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalSub').textContent = subtitle;
 
     const startBtn = document.getElementById('modalStart');
-    startBtn.textContent = isDone ? 'Przećwicz ponownie' : 'Rozpocznij';
+    startBtn.textContent = startLabel;
     startBtn.onclick = () => {
-      window.location.href = `lekcja.html?lesson=${encodeURIComponent(lesson.id)}`;
+      window.location.href = href;
     };
 
     document.getElementById('lessonModal').classList.add('show');

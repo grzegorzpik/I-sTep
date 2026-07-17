@@ -1,6 +1,4 @@
 .topbar{ display:flex; align-items:center; justify-content:space-between; padding:20px 20px 6px; }
-.back{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:6px; text-decoration:none; }
-.back svg{ width:14px; height:14px; }
 .progress-dots{ display:flex; gap:5px; }
 .dot{ width:8px; height:8px; background:var(--path-idle); }
 .dot.done{ background:var(--module-accent); }

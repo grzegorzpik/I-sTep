@@ -17,6 +17,7 @@
 
     content.modules.forEach((mod, i) => {
       const { doneCount, total } = moduleStats(mod);
+      const bootcampDone = mod.beacon && state.isLessonDone(mod.beacon.id);
       const num = String(i).padStart(2, '0');
 
       const badge = document.createElement('div');
@@ -26,7 +27,7 @@
         <span class="badge-num">${num}</span>
         <div class="badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#1B1622" stroke-width="2">${BADGE_ICON}</svg></div>
         <div class="badge-name">${mod.title}</div>
-        <div class="badge-date">${doneCount}/${total} pojęć</div>
+        <div class="badge-date">${bootcampDone ? 'ukończony ✓' : `${doneCount}/${total} pojęć`}</div>
       `;
       badge.addEventListener('click', () => openModal(mod, i));
       grid.appendChild(badge);
@@ -36,26 +37,29 @@
   function openModal(mod, index) {
     const { doneCount, total } = moduleStats(mod);
     const doneLabels = mod.lessons.filter((l) => state.isLessonDone(l.id)).map((l) => l.label);
+    const bootcampDone = mod.beacon && state.isLessonDone(mod.beacon.id);
 
     const box = document.getElementById('modalBox');
     box.style.setProperty('--mod-color', mod.accent);
 
-    document.getElementById('modalEyebrow').textContent =
-      `MODUŁ ${index} · W TRAKCIE · ${doneCount}/${total} POJĘĆ`;
+    document.getElementById('modalEyebrow').textContent = bootcampDone
+      ? `MODUŁ ${index} · UKOŃCZONY`
+      : `MODUŁ ${index} · W TRAKCIE · ${doneCount}/${total} POJĘĆ`;
     document.getElementById('modalTitle').textContent = mod.title;
 
     const tags = document.getElementById('modalTags');
     tags.innerHTML = doneLabels.length
       ? doneLabels.map((label) => `<span class="concept-tag">${label}</span>`).join('')
-      : '';
-    if (!doneLabels.length) {
-      tags.innerHTML = '<span class="concept-tag">jeszcze żadnych — zacznij na mapie</span>';
-    }
+      : '<span class="concept-tag">jeszcze żadnych — zacznij na mapie</span>';
 
-    document.getElementById('modalDesc').textContent =
-      'Pojawi się po ukończeniu bootcampu tego modułu — ekran bootcampu nie jest jeszcze zbudowany.';
+    document.getElementById('modalDesc').textContent = bootcampDone
+      ? 'Bootcamp ukończony — szczegóły tego, co zbudowałeś, zostały zwalidowane w rozmowie z Claude podczas bootcampu.'
+      : mod.beacon
+      ? 'Odblokuje się po ukończeniu bootcampu tego modułu.'
+      : 'Bootcamp tego modułu nie jest jeszcze zaprojektowany.';
     document.getElementById('modalNote').textContent =
       'Pojawi się po dodaniu wpisu retrospekcji — ekran retrospekcji nie jest jeszcze zbudowany.';
+    document.getElementById('modalStamp').textContent = bootcampDone ? 'UKOŃCZONY' : 'W TRAKCIE';
 
     document.getElementById('modalOverlay').classList.add('open');
   }
