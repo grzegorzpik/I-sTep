@@ -1,10 +1,17 @@
 (function () {
   const state = window.IStepState;
   const content = window.IStepContent;
+
+  if (!state.hasProfile()) {
+    window.location.href = 'onboarding.html';
+    return;
+  }
+
   const ROW_PATTERN = ['center', 'left', 'right', 'left', 'right'];
 
-  const MASCOT_SVG = `
-    <svg class="mascot" viewBox="0 0 16 16" style="--bot-body:#6FA860;" shape-rendering="crispEdges">
+  function mascotSvg(color) {
+    return `
+    <svg class="mascot" viewBox="0 0 16 16" style="--bot-body:${color};" shape-rendering="crispEdges">
       <rect x="7" y="0" width="2" height="1.1" fill="var(--bot-body)"/>
       <circle cx="8" cy="0.5" r="0.85" fill="#E3A83F"/>
       <rect x="3.2" y="1.6" width="9.6" height="6.8" fill="#F3E9D6" stroke="#0C0910" stroke-width="0.5"/>
@@ -24,6 +31,7 @@
       <rect x="4" y="14" width="2.8" height="2" fill="#0C0910"/>
       <rect x="9.2" y="14" width="2.8" height="2" fill="#0C0910"/>
     </svg>`;
+  }
 
   function computeStatuses(lessons) {
     let currentAssigned = false;
@@ -43,9 +51,12 @@
   }
 
   function renderModule(mod) {
+    const profile = state.getProfile();
+
     document.documentElement.style.setProperty('--module-accent', mod.accent);
     document.documentElement.style.setProperty('--module-accent-dark', mod.accentDark || mod.accent);
 
+    document.getElementById('greeting').textContent = `Cześć, ${profile.name}!`;
     document.getElementById('bannerEyebrow').textContent = mod.eyebrow;
     document.getElementById('bannerTitle').textContent = mod.title;
 
@@ -75,7 +86,7 @@
 
       row.appendChild(node);
       if (entry.status === 'current') {
-        row.insertAdjacentHTML('beforeend', MASCOT_SVG);
+        row.insertAdjacentHTML('beforeend', mascotSvg(profile.color));
       }
       nodesEl.appendChild(row);
     });
@@ -161,9 +172,9 @@
     renderModule(content.modules[0]);
 
     document.getElementById('devReset').addEventListener('click', () => {
-      if (confirm('Zresetować cały postęp (test)?')) {
+      if (confirm('Zresetować całą apkę — postęp i kompana (test)?')) {
         state.resetProgress();
-        renderModule(content.modules[0]);
+        window.location.href = 'onboarding.html';
       }
     });
 

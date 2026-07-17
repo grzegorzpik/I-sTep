@@ -4,6 +4,7 @@
  */
 (function () {
   const STORAGE_KEY = 'istep_progress_v1';
+  const PROFILE_KEY = 'istep_profile_v1';
 
   function getProgress() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -36,9 +37,39 @@
     return progress;
   }
 
+  // Name only changes via a full reset (see koncepcja: "imię tylko przez reset"),
+  // so resetProgress() intentionally wipes both progress and profile.
   function resetProgress() {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PROFILE_KEY);
   }
 
-  window.IStepState = { getProgress, isLessonDone, completeLesson, resetProgress };
+  function getProfile() {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && parsed.name ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function hasProfile() {
+    return !!getProfile();
+  }
+
+  function saveProfile(profile) {
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+  }
+
+  window.IStepState = {
+    getProgress,
+    isLessonDone,
+    completeLesson,
+    resetProgress,
+    getProfile,
+    hasProfile,
+    saveProfile,
+  };
 })();

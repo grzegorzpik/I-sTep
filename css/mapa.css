@@ -15,6 +15,11 @@
 }
 .streak svg{ width:13px; height:13px; }
 
+.greeting{
+  padding:0 20px; margin-top:2px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--paper-dim);
+}
+
 .dev-row{ padding:0 20px; margin-top:8px; text-align:right; }
 
 .banner{
