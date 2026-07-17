@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-sTep — Profil</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/profil.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">I-sTep</div>
+  </div>
+
+  <h1 class="title">Profil</h1>
+
+  <div class="companion-card">
+    <div class="portrait" id="portrait">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="7" y="0" width="2" height="1.1" fill="var(--bot-body)"/>
+        <circle cx="8" cy="0.5" r="0.85" fill="var(--gold)"/>
+        <rect x="3.2" y="1.6" width="9.6" height="6.8" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.5"/>
+        <rect x="4.4" y="3.2" width="7.2" height="3.6" fill="var(--ink)"/>
+        <path d="M5.6,5.0 L6.2,4.4 L6.8,5.0" stroke="var(--module-accent)" stroke-width="0.6" fill="none" stroke-linecap="square"/>
+        <path d="M9.0,5.0 L9.6,4.4 L10.2,5.0" stroke="var(--module-accent)" stroke-width="0.6" fill="none" stroke-linecap="square"/>
+        <rect x="3" y="8.6" width="10" height="5.4" fill="var(--bot-body)" stroke="var(--outline)" stroke-width="0.5"/>
+        <rect x="5.5" y="10.2" width="5" height="2.6" fill="var(--ink)"/>
+        <rect x="6.1" y="10.7" width="3.8" height="0.5" fill="var(--gold)"/>
+        <rect x="6.1" y="11.5" width="2.4" height="0.5" fill="var(--gold)"/>
+        <rect class="arm-right" x="13.2" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+        <rect x="0.6" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+        <rect x="4" y="14" width="2.8" height="2" fill="var(--outline)"/>
+        <rect x="9.2" y="14" width="2.8" height="2" fill="var(--outline)"/>
+      </svg>
+    </div>
+    <div class="companion-info">
+      <div class="name" id="companionName"></div>
+      <div class="lock-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="13.5" cy="17.5" r="2.5"/><path d="M8.2 10.8l3.1-2.9M8.2 13.2l3.1 2.9"/></svg>
+        Kliknij, aby zmienić kolor
+      </div>
+    </div>
+  </div>
+
+  <div class="swatches-inline" id="swatchesInline">
+    <div class="swatch" style="background:#6FA860" data-color="#6FA860"></div>
+    <div class="swatch" style="background:#4E8FC4" data-color="#4E8FC4"></div>
+    <div class="swatch" style="background:#D4667A" data-color="#D4667A"></div>
+    <div class="swatch" style="background:#E3A83F" data-color="#E3A83F"></div>
+    <div class="swatch" style="background:#9C7FD4" data-color="#9C7FD4"></div>
+  </div>
+
+  <div class="level-card">
+    <div class="level-top">
+      <div class="level-badge" id="levelBadge"></div>
+      <div class="level-text">
+        <div class="eyebrow" id="levelEyebrow"></div>
+        <div class="name" id="levelName"></div>
+      </div>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+    </div>
+    <div class="xp-labels"><span id="xpNow"></span><span id="xpNext"></span></div>
+
+    <div class="next-level" id="nextLevel"></div>
+
+    <button class="dev-reset" id="devAddXp" type="button">+10 XP (test poziomu)</button>
+  </div>
+
+  <div class="section-label">PUNKTACJA</div>
+  <div class="panel-row">
+    <div>
+      <div class="label">Mikrolekcja</div>
+      <div class="sub">krótkie pojęcie</div>
+    </div>
+    <div class="label" style="color:var(--module-accent)">+10 XP</div>
+  </div>
+  <div class="panel-row">
+    <div>
+      <div class="label">Ćwiczenie praktyczne</div>
+      <div class="sub">samodzielne zadanie</div>
+    </div>
+    <div class="label" style="color:var(--module-accent)">+20 XP</div>
+  </div>
+  <div class="panel-row">
+    <div>
+      <div class="label">Bootcamp</div>
+      <div class="sub">pełne wdrożenie w apce</div>
+    </div>
+    <div class="label" style="color:var(--gold)">+50 XP</div>
+  </div>
+
+  <div class="section-label">DANE</div>
+  <div class="panel-row">
+    <div>
+      <div class="label">Eksportuj dane</div>
+      <div class="sub">kopia zapasowa (.json)</div>
+    </div>
+    <button class="btn" id="exportBtn">Eksportuj</button>
+  </div>
+  <div class="panel-row">
+    <div>
+      <div class="label">Importuj dane</div>
+      <div class="sub" id="importSub">wczytaj kopię zapasową</div>
+    </div>
+    <button class="btn" id="importBtn">Importuj</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+  </div>
+
+  <div class="danger-zone">
+    <div class="label">Strefa niebezpieczna</div>
+    <div class="sub">Reset usuwa cały postęp — w tym imię i kolor kompana. Nieodwracalne.</div>
+    <button class="btn-danger" id="resetBtn">Resetuj aplikację</button>
+  </div>
+</div>
+
+<div class="navbar">
+  <div class="navbar-inner">
+    <a class="navitem" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      MAPA
+    </a>
+    <span class="navitem disabled">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>
+      DZIENNIK
+    </span>
+    <a class="navitem active" href="profil.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      PROFIL
+    </a>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/levels.js"></script>
+<script src="js/profil.js"></script>
+</body>
+</html>

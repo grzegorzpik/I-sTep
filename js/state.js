@@ -63,6 +63,44 @@
     localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
   }
 
+  // Dev/test-only: bump XP without a real lesson behind it, so level-up UI
+  // can be previewed without grinding out content that doesn't exist yet.
+  function addTestXp(amount) {
+    const progress = getProgress();
+    progress.xp += amount;
+    saveProgress(progress);
+    return progress;
+  }
+
+  function exportData() {
+    return JSON.stringify(
+      { exportedAt: new Date().toISOString(), progress: getProgress(), profile: getProfile() },
+      null,
+      2
+    );
+  }
+
+  function importData(jsonText) {
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch (e) {
+      return false;
+    }
+    if (!parsed || typeof parsed !== 'object') return false;
+
+    if (parsed.progress) {
+      saveProgress({
+        xp: typeof parsed.progress.xp === 'number' ? parsed.progress.xp : 0,
+        lessonsDone: parsed.progress.lessonsDone || {},
+      });
+    }
+    if (parsed.profile && parsed.profile.name) {
+      saveProfile(parsed.profile);
+    }
+    return true;
+  }
+
   window.IStepState = {
     getProgress,
     isLessonDone,
@@ -71,5 +109,8 @@
     getProfile,
     hasProfile,
     saveProfile,
+    addTestXp,
+    exportData,
+    importData,
   };
 })();
