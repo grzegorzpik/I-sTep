@@ -3,6 +3,8 @@
   const content = window.IStepContent;
 
   let wrongAttempts = 0;
+  let selectedBtn = null;
+  let submitted = false; // selection has been checked, waiting for retry
   let answeredCorrectly = false;
 
   function getLessonIdFromUrl() {
@@ -51,33 +53,71 @@
       btn.className = 'option';
       btn.textContent = opt.text;
       btn.dataset.correct = opt.correct ? 'true' : 'false';
-      btn.addEventListener('click', () => handleAnswer(btn, lesson));
+      btn.addEventListener('click', () => handleSelect(btn));
       optionsEl.appendChild(btn);
     });
+
+    updateFooter();
   }
 
-  function handleAnswer(opt, lesson) {
-    if (answeredCorrectly) return;
-    document.querySelectorAll('.option').forEach((o) => (o.disabled = true));
+  // Clicking an option only marks it as chosen — evaluation happens on
+  // footer button confirm, so feedback never appears before the user commits.
+  function handleSelect(btn) {
+    if (answeredCorrectly || submitted) return;
+    document.querySelectorAll('.option').forEach((o) => o.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedBtn = btn;
+    updateFooter();
+  }
 
+  function updateFooter() {
     const nextBtn = document.getElementById('nextBtn');
-    const fb = document.getElementById('feedback');
-    const isCorrect = opt.dataset.correct === 'true';
 
-    if (isCorrect) {
-      answeredCorrectly = true;
-      opt.classList.add('correct');
-      fb.innerHTML = lesson.feedbackCorrect;
-      fb.classList.remove('bad');
-      fb.classList.add('show', 'ok');
-
+    if (answeredCorrectly) {
       nextBtn.disabled = false;
       nextBtn.classList.remove('retry');
       nextBtn.classList.add('ready');
       nextBtn.textContent = 'Zaliczone';
+      return;
+    }
+
+    if (submitted) {
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('ready');
+      nextBtn.classList.add('retry');
+      nextBtn.textContent = 'Spróbuj jeszcze raz';
+      return;
+    }
+
+    nextBtn.classList.remove('retry');
+    if (selectedBtn) {
+      nextBtn.disabled = false;
+      nextBtn.classList.add('ready');
+      nextBtn.textContent = 'Sprawdź';
+    } else {
+      nextBtn.disabled = true;
+      nextBtn.classList.remove('ready');
+      nextBtn.textContent = 'Sprawdź';
+    }
+  }
+
+  function handleSubmit(lesson) {
+    if (!selectedBtn) return;
+    document.querySelectorAll('.option').forEach((o) => (o.disabled = true));
+
+    const isCorrect = selectedBtn.dataset.correct === 'true';
+    const fb = document.getElementById('feedback');
+
+    if (isCorrect) {
+      answeredCorrectly = true;
+      selectedBtn.classList.add('correct');
+      fb.innerHTML = lesson.feedbackCorrect;
+      fb.classList.remove('bad');
+      fb.classList.add('show', 'ok');
     } else {
       wrongAttempts++;
-      opt.classList.add('wrong');
+      submitted = true;
+      selectedBtn.classList.add('wrong');
       let html = lesson.feedbackWrong;
       if (wrongAttempts >= 2 && lesson.hint) {
         html += `<div class="hint">${lesson.hint}</div>`;
@@ -85,12 +125,9 @@
       fb.innerHTML = html;
       fb.classList.remove('ok');
       fb.classList.add('show', 'bad');
-
-      nextBtn.disabled = false;
-      nextBtn.classList.remove('ready');
-      nextBtn.classList.add('retry');
-      nextBtn.textContent = 'Spróbuj jeszcze raz';
     }
+
+    updateFooter();
   }
 
   function handleRetry() {
@@ -98,26 +135,22 @@
       o.disabled = false;
       o.classList.remove('wrong', 'selected');
     });
-    const fb = document.getElementById('feedback');
-    fb.classList.remove('show', 'bad');
-    fb.innerHTML = '';
+    document.getElementById('feedback').classList.remove('show', 'bad');
+    document.getElementById('feedback').innerHTML = '';
 
-    const nextBtn = document.getElementById('nextBtn');
-    nextBtn.disabled = true;
-    nextBtn.classList.remove('retry');
-    nextBtn.textContent = 'Zaliczone';
+    selectedBtn = null;
+    submitted = false;
+    updateFooter();
   }
 
   function handleComplete(lesson) {
-    const nextBtn = document.getElementById('nextBtn');
-    if (!nextBtn.classList.contains('ready')) return;
-
     state.completeLesson(lesson.id, lesson.xp || 0);
 
     const toast = document.getElementById('xpToast');
     toast.textContent = `+${lesson.xp || 0} XP`;
     toast.classList.add('show');
 
+    const nextBtn = document.getElementById('nextBtn');
     nextBtn.disabled = true;
     nextBtn.textContent = 'Wracam do mapy...';
 
@@ -138,11 +171,15 @@
     renderLesson(found.mod, found.lesson);
 
     document.getElementById('nextBtn').addEventListener('click', function () {
-      if (this.classList.contains('retry')) {
+      if (answeredCorrectly) {
+        handleComplete(found.lesson);
+        return;
+      }
+      if (submitted) {
         handleRetry();
         return;
       }
-      handleComplete(found.lesson);
+      handleSubmit(found.lesson);
     });
   });
 })();
