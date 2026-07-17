@@ -91,8 +91,38 @@
       nodesEl.appendChild(row);
     });
 
+    if (mod.quiz) {
+      const allLessonsDone = statuses.every((s) => s.status === 'done');
+      const quizDone = state.isLessonDone(mod.quiz.id);
+      const quizStatus = quizDone ? 'done' : allLessonsDone ? 'current' : 'locked';
+      const quizIndex = mod.lessons.length;
+
+      const row = document.createElement('div');
+      row.className = `node-row ${ROW_PATTERN[quizIndex % ROW_PATTERN.length]}`;
+
+      const node = document.createElement('div');
+      node.className = `node ${quizStatus}`;
+      node.setAttribute('data-point', '');
+      node.innerHTML = `<div class="core">?</div><div class="label">${mod.quiz.label}</div>`;
+
+      const quizClickable = (quizStatus === 'current' || quizStatus === 'done') && !!mod.quiz.questions?.length;
+      if (quizClickable) {
+        node.addEventListener('click', () => openLessonModal(mod, mod.quiz, quizStatus));
+      } else {
+        node.style.cursor = 'default';
+      }
+
+      row.appendChild(node);
+      if (quizStatus === 'current') {
+        row.insertAdjacentHTML('beforeend', mascotSvg(profile.color));
+      }
+      nodesEl.appendChild(row);
+    }
+
     if (mod.beacon) {
-      const beaconUnlocked = statuses.every((s) => s.status === 'done');
+      const beaconUnlocked = mod.quiz
+        ? state.isLessonDone(mod.quiz.id)
+        : statuses.every((s) => s.status === 'done');
       const row = document.createElement('div');
       row.className = 'node-row center';
       row.style.minHeight = '150px';

@@ -52,6 +52,43 @@ window.IStepContent = {
         { id: 'json', label: 'JSON' },
         { id: 'endpoint', label: 'Endpoint' },
       ],
+      // Checkpoint, not a mikrolekcja — sits right before the beacon and only
+      // unlocks once every lesson above is done. Questions revisit concepts
+      // from real (built) lessons via new scenarios, never the same example
+      // twice, so it can't be passed by memorizing wording.
+      quiz: {
+        id: 'quiz-modul-0',
+        label: 'Quiz: sprawdzian modułu',
+        eyebrowLesson: 'MODUŁ 0 · QUIZ',
+        title: 'Sprawdzian: Jak działa internet',
+        xp: 20,
+        questions: [
+          {
+            question:
+              'Piszesz do znajomego wiadomość w komunikatorze. W układzie klient-serwer, czym w tym momencie jest Twoja aplikacja komunikatora?',
+            options: [
+              { text: 'Klientem — inicjuje wysłanie wiadomości i czeka na potwierdzenie', correct: true },
+              { text: 'Serwerem — przechowuje wszystkie wiadomości na stałe', correct: false },
+              { text: 'Protokołem — ustala zasady przesyłania danych', correct: false },
+            ],
+            feedbackCorrect: 'Zgadza się — apka, z której korzystasz, zawsze jest stroną inicjującą, czyli klientem.',
+            feedbackWrong: 'Niestety, to zła odpowiedź.',
+            hint: 'Podpowiedź: klient to zawsze ten, kto pyta pierwszy — kto w tej sytuacji zaczyna działanie?',
+          },
+          {
+            question:
+              'Aplikacja do zamawiania jedzenia pokazuje na mapie pozycję kuriera w czasie rzeczywistym. Co najlepiej opisuje mechanizm, który dostarcza jej te dane z systemu firmy kurierskiej?',
+            options: [
+              { text: 'API firmy kurierskiej, przez które aplikacja pyta o aktualną pozycję', correct: true },
+              { text: 'JSON, czyli sam format danych, w którym trzymana jest pozycja', correct: false },
+              { text: 'Klient, czyli aplikacja na Twoim telefonie', correct: false },
+            ],
+            feedbackCorrect: 'Dokładnie — to API pośredniczy w tej wymianie, niezależnie w jakim formacie dane wracają.',
+            feedbackWrong: 'Niestety, to zła odpowiedź.',
+            hint: 'Podpowiedź: szukasz mechanizmu „kelnera” między dwiema aplikacjami, nie samego klienta ani formatu danych.',
+          },
+        ],
+      },
       beacon: { id: 'bootcamp-0', label: 'Bootcamp:<br>integracja API' },
     },
   ],

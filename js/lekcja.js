@@ -2,21 +2,33 @@
   const state = window.IStepState;
   const content = window.IStepContent;
 
+  let steps = [];
+  let stepIndex = 0;
   let wrongAttempts = 0;
   let selectedBtn = null;
-  let submitted = false; // selection has been checked, waiting for retry
-  let answeredCorrectly = false;
+  let submitted = false; // current step answered wrong, waiting for retry
+  let stepSolved = false; // current step answered correctly, waiting to advance/finish
+
+  let currentMod = null;
+  let currentLessonLike = null;
 
   function getLessonIdFromUrl() {
     return new URLSearchParams(window.location.search).get('lesson');
   }
 
-  function findLesson(lessonId) {
+  // A "lesson-like" is either a regular mikrolekcja (single question, own
+  // .body/.analogy) or a module quiz (multiple .questions, no teaching copy).
+  function findLessonLike(id) {
     for (const mod of content.modules) {
-      const lesson = mod.lessons.find((l) => l.id === lessonId);
-      if (lesson) return { mod, lesson };
+      const lesson = mod.lessons.find((l) => l.id === id);
+      if (lesson) return { mod, lessonLike: lesson };
+      if (mod.quiz && mod.quiz.id === id) return { mod, lessonLike: mod.quiz };
     }
     return null;
+  }
+
+  function hasContent(lessonLike) {
+    return !!(lessonLike.question || (lessonLike.questions && lessonLike.questions.length));
   }
 
   function renderEmptyState() {
@@ -24,10 +36,25 @@
       '<div class="empty-state">Ta lekcja nie jest jeszcze gotowa. <a href="index.html">Wróć do mapy</a></div>';
   }
 
-  function renderProgressDots(mod, lesson) {
-    const index = mod.lessons.findIndex((l) => l.id === lesson.id);
+  function renderProgressIndicator() {
     const dots = document.getElementById('progressDots');
-    dots.innerHTML = mod.lessons
+    const divider = document.getElementById('divider');
+
+    if (steps.length > 1) {
+      divider.textContent = `PYTANIE ${stepIndex + 1} Z ${steps.length}`;
+      dots.innerHTML = steps
+        .map((_, i) => {
+          if (i < stepIndex) return '<div class="dot done"></div>';
+          if (i === stepIndex) return '<div class="dot current"></div>';
+          return '<div class="dot"></div>';
+        })
+        .join('');
+      return;
+    }
+
+    divider.textContent = 'SPRAWDŹ SIĘ';
+    const index = currentMod.lessons.findIndex((l) => l.id === currentLessonLike.id);
+    dots.innerHTML = currentMod.lessons
       .map((l, i) => {
         if (i < index) return '<div class="dot done"></div>';
         if (i === index) return '<div class="dot current"></div>';
@@ -36,19 +63,20 @@
       .join('');
   }
 
-  function renderLesson(mod, lesson) {
-    document.documentElement.style.setProperty('--module-accent', mod.accent);
+  function renderStep() {
+    const step = steps[stepIndex];
+    wrongAttempts = 0;
+    selectedBtn = null;
+    submitted = false;
+    stepSolved = false;
 
-    document.getElementById('eyebrow').textContent = lesson.eyebrowLesson || mod.eyebrow;
-    document.getElementById('lessonTitle').textContent = lesson.title;
-    document.getElementById('bodyText').innerHTML = lesson.body;
-    document.getElementById('analogyText').textContent = lesson.analogy;
-    document.getElementById('questionText').textContent = lesson.question;
-    renderProgressDots(mod, lesson);
+    document.getElementById('questionText').textContent = step.question;
+    document.getElementById('feedback').classList.remove('show', 'ok', 'bad');
+    document.getElementById('feedback').innerHTML = '';
 
     const optionsEl = document.getElementById('options');
     optionsEl.innerHTML = '';
-    lesson.options.forEach((opt) => {
+    step.options.forEach((opt) => {
       const btn = document.createElement('button');
       btn.className = 'option';
       btn.textContent = opt.text;
@@ -57,13 +85,36 @@
       optionsEl.appendChild(btn);
     });
 
+    renderProgressIndicator();
     updateFooter();
+  }
+
+  function renderLessonLike(mod, lessonLike) {
+    currentMod = mod;
+    currentLessonLike = lessonLike;
+    steps = lessonLike.questions || [lessonLike];
+    stepIndex = 0;
+
+    document.documentElement.style.setProperty('--module-accent', mod.accent);
+    document.getElementById('eyebrow').textContent = lessonLike.eyebrowLesson || mod.eyebrow;
+    document.getElementById('lessonTitle').textContent = lessonLike.title;
+
+    const teachingSection = document.getElementById('teachingSection');
+    if (lessonLike.body) {
+      teachingSection.style.display = '';
+      document.getElementById('bodyText').innerHTML = lessonLike.body;
+      document.getElementById('analogyText').textContent = lessonLike.analogy;
+    } else {
+      teachingSection.style.display = 'none';
+    }
+
+    renderStep();
   }
 
   // Clicking an option only marks it as chosen — evaluation happens on
   // footer button confirm, so feedback never appears before the user commits.
   function handleSelect(btn) {
-    if (answeredCorrectly || submitted) return;
+    if (stepSolved || submitted) return;
     document.querySelectorAll('.option').forEach((o) => o.classList.remove('selected'));
     btn.classList.add('selected');
     selectedBtn = btn;
@@ -72,12 +123,13 @@
 
   function updateFooter() {
     const nextBtn = document.getElementById('nextBtn');
+    const isLastStep = stepIndex === steps.length - 1;
 
-    if (answeredCorrectly) {
+    if (stepSolved) {
       nextBtn.disabled = false;
       nextBtn.classList.remove('retry');
       nextBtn.classList.add('ready');
-      nextBtn.textContent = 'Zaliczone';
+      nextBtn.textContent = isLastStep ? 'Zaliczone' : 'Następne pytanie';
       return;
     }
 
@@ -101,7 +153,7 @@
     }
   }
 
-  function handleSubmit(lesson) {
+  function handleSubmit(step) {
     if (!selectedBtn) return;
     document.querySelectorAll('.option').forEach((o) => (o.disabled = true));
 
@@ -109,18 +161,18 @@
     const fb = document.getElementById('feedback');
 
     if (isCorrect) {
-      answeredCorrectly = true;
+      stepSolved = true;
       selectedBtn.classList.add('correct');
-      fb.innerHTML = lesson.feedbackCorrect;
+      fb.innerHTML = step.feedbackCorrect;
       fb.classList.remove('bad');
       fb.classList.add('show', 'ok');
     } else {
       wrongAttempts++;
       submitted = true;
       selectedBtn.classList.add('wrong');
-      let html = lesson.feedbackWrong;
-      if (wrongAttempts >= 2 && lesson.hint) {
-        html += `<div class="hint">${lesson.hint}</div>`;
+      let html = step.feedbackWrong;
+      if (wrongAttempts >= 2 && step.hint) {
+        html += `<div class="hint">${step.hint}</div>`;
       }
       fb.innerHTML = html;
       fb.classList.remove('ok');
@@ -143,11 +195,11 @@
     updateFooter();
   }
 
-  function handleComplete(lesson) {
-    state.completeLesson(lesson.id, lesson.xp || 0);
+  function handleComplete() {
+    state.completeLesson(currentLessonLike.id, currentLessonLike.xp || 0);
 
     const toast = document.getElementById('xpToast');
-    toast.textContent = `+${lesson.xp || 0} XP`;
+    toast.textContent = `+${currentLessonLike.xp || 0} XP`;
     toast.classList.add('show');
 
     const nextBtn = document.getElementById('nextBtn');
@@ -161,25 +213,30 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     const lessonId = getLessonIdFromUrl();
-    const found = lessonId && findLesson(lessonId);
+    const found = lessonId && findLessonLike(lessonId);
 
-    if (!found || !found.lesson.question) {
+    if (!found || !hasContent(found.lessonLike)) {
       renderEmptyState();
       return;
     }
 
-    renderLesson(found.mod, found.lesson);
+    renderLessonLike(found.mod, found.lessonLike);
 
     document.getElementById('nextBtn').addEventListener('click', function () {
-      if (answeredCorrectly) {
-        handleComplete(found.lesson);
+      if (stepSolved) {
+        if (stepIndex === steps.length - 1) {
+          handleComplete();
+        } else {
+          stepIndex++;
+          renderStep();
+        }
         return;
       }
       if (submitted) {
         handleRetry();
         return;
       }
-      handleSubmit(found.lesson);
+      handleSubmit(steps[stepIndex]);
     });
   });
 })();
