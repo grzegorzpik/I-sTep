@@ -66,11 +66,9 @@
       node.setAttribute('data-point', '');
       node.innerHTML = `<div class="core">${i + 1}</div><div class="label">${entry.lesson.label}</div>`;
 
-      const isClickable = entry.status === 'current' && !!entry.lesson.question;
+      const isClickable = (entry.status === 'current' || entry.status === 'done') && !!entry.lesson.question;
       if (isClickable) {
-        node.addEventListener('click', () => {
-          window.location.href = `lekcja.html?lesson=${encodeURIComponent(entry.lesson.id)}`;
-        });
+        node.addEventListener('click', () => openLessonModal(mod, entry.lesson, entry.status));
       } else {
         node.style.cursor = 'default';
       }
@@ -134,6 +132,29 @@
     `;
   }
 
+  function openLessonModal(mod, lesson, status) {
+    const isDone = status === 'done';
+    document.getElementById('modalEyebrow').textContent = mod.eyebrow;
+    document.getElementById('modalTitle').textContent = lesson.title || lesson.label;
+    document.getElementById('modalSub').textContent = isDone
+      ? 'Ukończona mikrolekcja — możesz ją powtórzyć, ale bez dodatkowego XP.'
+      : `Nowa mikrolekcja · +${lesson.xp || 10} XP za zaliczenie.`;
+
+    const startBtn = document.getElementById('modalStart');
+    startBtn.textContent = isDone ? 'Przećwicz ponownie' : 'Rozpocznij';
+    startBtn.onclick = () => {
+      window.location.href = `lekcja.html?lesson=${encodeURIComponent(lesson.id)}`;
+    };
+
+    document.getElementById('lessonModal').classList.add('show');
+    document.getElementById('modalBackdrop').classList.add('show');
+  }
+
+  function closeLessonModal() {
+    document.getElementById('lessonModal').classList.remove('show');
+    document.getElementById('modalBackdrop').classList.remove('show');
+  }
+
   window.addEventListener('resize', () => requestAnimationFrame(drawTrail));
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -145,5 +166,8 @@
         renderModule(content.modules[0]);
       }
     });
+
+    document.getElementById('modalCancel').addEventListener('click', closeLessonModal);
+    document.getElementById('modalBackdrop').addEventListener('click', closeLessonModal);
   });
 })();

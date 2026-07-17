@@ -74,6 +74,46 @@ svg.trail{ position:absolute; top:0; left:0; z-index:0; overflow:visible; }
 .trail path.remaining{ fill:none; stroke:var(--path-idle); stroke-width:4; stroke-dasharray:2 10; stroke-linecap:square; stroke-linejoin:miter; }
 .trail path.walked{ fill:none; stroke:var(--module-accent); stroke-width:4; stroke-dasharray:8 6; stroke-linecap:square; stroke-linejoin:miter; }
 
+/* lesson start/replay confirmation sheet */
+.modal-backdrop{
+  position:fixed; inset:0; z-index:9;
+  background:rgba(12,9,16,.65);
+  opacity:0; pointer-events:none; transition:opacity .2s ease;
+}
+.modal-backdrop.show{ opacity:1; pointer-events:auto; }
+
+.lesson-modal{
+  position:fixed; left:0; right:0; bottom:0; z-index:10;
+  display:flex; justify-content:center;
+  transform:translateY(100%); transition:transform .22s ease;
+}
+.lesson-modal.show{ transform:translateY(0); }
+
+.lesson-modal-inner{
+  width:100%; max-width:480px;
+  background:var(--ink-panel); border-top:3px solid var(--outline);
+  box-shadow:0 -4px 0 var(--outline);
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+}
+.lesson-modal-inner .eyebrow{
+  font-family:'Press Start 2P',monospace; font-size:9px; letter-spacing:.02em;
+  color:var(--module-accent); display:block; margin-bottom:10px;
+}
+.lesson-modal-inner h2{
+  font-family:'Silkscreen',monospace; font-size:19px; margin-bottom:8px; color:var(--paper);
+}
+.lesson-modal-inner .modal-sub{
+  font-size:12.5px; color:var(--paper-dim); font-family:'JetBrains Mono',monospace;
+  line-height:1.5; margin-bottom:18px;
+}
+.modal-actions{ display:flex; flex-direction:column; gap:10px; }
+.modal-cancel{
+  background:none; border:none; color:var(--paper-dim);
+  font-family:'JetBrains Mono',monospace; font-size:12px; text-align:center;
+  padding:6px; cursor:pointer;
+}
+.modal-cancel:hover{ color:var(--paper); }
+
 .mascot{ width:76px; height:76px; margin-left:10px; animation:mascotBob 2.2s steps(4) infinite; filter:drop-shadow(3px 3px 0 var(--outline)); }
 .node-row.right .mascot{ margin-left:0; margin-right:10px; order:-1; }
 @keyframes mascotBob{ 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-5px) rotate(-2deg); } }
