@@ -1,0 +1,81 @@
+.terrain{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+.topbar{ display:flex; align-items:center; justify-content:space-between; padding:22px 20px 10px; }
+.logo{
+  font-family:'Silkscreen',monospace; font-weight:700; font-size:16px;
+  letter-spacing:.04em; color:var(--paper);
+  display:flex; align-items:center; gap:8px;
+}
+.logo::before{ content:''; width:12px; height:12px; background:var(--module-accent); border:2px solid var(--outline); }
+.streak{
+  display:flex; align-items:center; gap:6px;
+  font-family:'JetBrains Mono',monospace; font-weight:600; font-size:14px;
+  color:var(--ink); background:var(--gold); border:2px solid var(--outline);
+  padding:5px 10px; box-shadow:3px 3px 0 var(--outline);
+}
+.streak svg{ width:13px; height:13px; }
+
+.dev-row{ padding:0 20px; margin-top:8px; text-align:right; }
+
+.banner{
+  margin:18px 20px 8px; padding:18px 20px;
+  background:var(--ink-panel); border:3px solid var(--outline);
+  box-shadow:5px 5px 0 var(--outline); position:relative;
+}
+.banner .eyebrow{
+  font-family:'Press Start 2P',monospace; font-size:9px; letter-spacing:.02em;
+  color:var(--module-accent); display:block; margin-bottom:10px; line-height:1.6;
+}
+.banner h1{ font-family:'Silkscreen',monospace; font-size:20px; font-weight:700; color:var(--paper); }
+.banner .sub{ margin-top:8px; font-size:12.5px; color:var(--paper-dim); font-family:'JetBrains Mono',monospace; }
+
+.path-wrap{ position:relative; padding:44px 0 20px; }
+svg.trail{ position:absolute; top:0; left:0; z-index:0; overflow:visible; }
+
+.nodes{ position:relative; z-index:1; display:flex; flex-direction:column; gap:0; }
+
+.node-row{ display:flex; align-items:center; min-height:118px; position:relative; }
+.node-row.left{ justify-content:flex-start; padding-left:16%; }
+.node-row.right{ justify-content:flex-end; padding-right:16%; }
+.node-row.center{ justify-content:center; }
+
+.node{ position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease; }
+.node:active{ transform:translate(2px,2px); }
+.node[style*="cursor: default"]:active{ transform:none; }
+
+.core{
+  width:58px; height:58px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Press Start 2P',monospace; font-size:14px;
+  position:relative; border:3px solid var(--outline);
+  clip-path:polygon(20% 0%,80% 0%,100% 20%,100% 80%,80% 100%,20% 100%,0% 80%,0% 20%);
+}
+
+.node.done .core{ background:var(--module-accent); box-shadow:4px 4px 0 var(--outline); color:var(--ink); }
+.node.current .core{ background:var(--paper); box-shadow:4px 4px 0 var(--outline); color:var(--ink); animation:bob 1.6s steps(4) infinite; }
+.node.locked .core{ background:var(--ink-panel); border-color:var(--path-idle); color:var(--paper-dim); box-shadow:4px 4px 0 #00000040; }
+
+@keyframes bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+
+.label{
+  position:absolute; top:70px; left:50%; transform:translateX(-50%);
+  width:118px; text-align:center; font-size:11px; color:var(--paper-dim);
+  line-height:1.35; font-family:'Inter',sans-serif; font-weight:500;
+}
+.node.current .label{ color:var(--paper); font-weight:700; }
+
+.beacon .core{
+  width:84px; height:84px; background:var(--gold); border-color:var(--outline);
+  box-shadow:5px 5px 0 var(--outline);
+  clip-path:polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+}
+.beacon .core::after{ content:'◆'; font-size:20px; color:var(--gold-dark); }
+
+.trail path.remaining{ fill:none; stroke:var(--path-idle); stroke-width:4; stroke-dasharray:2 10; stroke-linecap:square; stroke-linejoin:miter; }
+.trail path.walked{ fill:none; stroke:var(--module-accent); stroke-width:4; stroke-dasharray:8 6; stroke-linecap:square; stroke-linejoin:miter; }
+
+.mascot{ width:76px; height:76px; margin-left:10px; animation:mascotBob 2.2s steps(4) infinite; filter:drop-shadow(3px 3px 0 var(--outline)); }
+.node-row.right .mascot{ margin-left:0; margin-right:10px; order:-1; }
+@keyframes mascotBob{ 0%,100%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-5px) rotate(-2deg); } }
+.mascot .eyes{ transform-box:fill-box; transform-origin:50% 50%; animation:blink 4.2s infinite; }
+@keyframes blink{ 0%,90%,100%{ transform:scaleY(1); } 94%{ transform:scaleY(0.15); } }

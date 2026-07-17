@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+
+:root{
+  --ink:#1B1622;
+  --ink-panel:#241D2C;
+  --paper:#F3E9D6;
+  --paper-dim:#9C90A6;
+  --outline:#0C0910;
+  --module-accent:#4E8FC4;
+  --module-accent-dark:#3A6A94;
+  --gold:#E3A83F;
+  --gold-dark:#9C6C1F;
+  --path-idle:#3A3145;
+  --danger:#C4544E;
+  --success:#6FA860;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+.app{ max-width:480px; margin:0 auto; min-height:100vh; padding-bottom:100px; position:relative; z-index:1; }
+
+/* bottom nav, shared by every screen */
+.navbar{
+  position:fixed; bottom:0; left:0; right:0; z-index:5;
+  background:var(--ink-panel);
+  border-top:3px solid var(--outline);
+  display:flex; justify-content:center;
+  padding:10px 0 max(10px, env(safe-area-inset-bottom));
+}
+.navbar-inner{ display:flex; gap:52px; max-width:480px; width:100%; justify-content:center; }
+.navitem{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  color:var(--paper-dim); font-size:9.5px; font-family:'Press Start 2P',monospace;
+  letter-spacing:.01em; text-decoration:none; background:none; border:none; cursor:pointer;
+}
+.navitem.active{ color:var(--module-accent); }
+.navitem.disabled{ opacity:.4; cursor:default; }
+.navitem svg{ width:20px; height:20px; }
+
+/* primary CTA button, shared by lesson/completion screens */
+.btn-primary{
+  width:100%; font-family:'Silkscreen',monospace; font-weight:700; font-size:15px; padding:14px;
+  background:var(--path-idle); border:3px solid var(--outline); color:var(--paper-dim); cursor:not-allowed;
+}
+.btn-primary.ready{ background:var(--gold); color:var(--ink); cursor:pointer; box-shadow:4px 4px 0 var(--outline); }
+.btn-primary.ready:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 var(--outline); }
+.btn-primary.retry{ background:var(--danger); color:var(--paper); cursor:pointer; box-shadow:4px 4px 0 var(--outline); }
+.btn-primary.retry:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 var(--outline); }
+
+/* dev-only reset control, unobtrusive */
+.dev-reset{
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--paper-dim);
+  text-decoration:underline dashed var(--paper-dim); text-underline-offset:3px;
+  background:none; border:none; cursor:pointer; padding:0;
+}
+.dev-reset:hover{ color:var(--paper); }
