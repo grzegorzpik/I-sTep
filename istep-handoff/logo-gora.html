@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-sTep — Logo góra</title>
+<style>
+  :root{
+    --ink:#12101A; --paper:#F3E9D6; --mint:#4ADE9A; --purple:#9C7FD4; --outline:#0C0910;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; gap:40px; padding:40px 20px; -webkit-font-smoothing:antialiased; }
+  .label{ font-family:monospace; font-size:11px; color:#9C90A6; text-align:center; margin-bottom:16px; }
+  .row{ display:flex; gap:36px; align-items:flex-end; justify-content:center; flex-wrap:wrap; }
+  .tile{
+    background:var(--ink); border:3px solid var(--outline); border-radius:22%;
+    display:flex; align-items:center; justify-content:center; box-shadow:5px 5px 0 var(--outline);
+  }
+  .t1{ width:180px; height:180px; }
+  .t2{ width:96px; height:96px; border-radius:24%; box-shadow:4px 4px 0 var(--outline); }
+  .t3{ width:48px; height:48px; border-radius:26%; box-shadow:2px 2px 0 var(--outline); }
+  svg{ shape-rendering: crispEdges; }
+</style>
+</head>
+<body>
+
+<div>
+  <div class="label">DUŻO — sprawdzenie kształtu</div>
+  <div class="tile t1">
+    <svg viewBox="0 0 16 16" width="70%" height="70%">
+      <rect x="1" y="12" width="2" height="2" fill="var(--mint)"/>
+      <rect x="3" y="10" width="2" height="2" fill="var(--mint)"/>
+      <rect x="5" y="8" width="2" height="2" fill="var(--mint)"/>
+      <rect x="7" y="6" width="2" height="2" fill="var(--mint)"/>
+      <rect x="9" y="8" width="2" height="2" fill="var(--mint)"/>
+      <rect x="11" y="10" width="2" height="2" fill="var(--mint)"/>
+      <rect x="13" y="12" width="2" height="2" fill="var(--mint)"/>
+      <rect x="7.5" y="1.5" width="1" height="4.5" fill="var(--paper)"/>
+      <rect x="8.5" y="1.5" width="3" height="2" fill="var(--purple)"/>
+    </svg>
+  </div>
+</div>
+
+<div>
+  <div class="label">ŚREDNIO — jak w nagłówku apki (44–56px)</div>
+  <div class="tile t2">
+    <svg viewBox="0 0 16 16" width="70%" height="70%">
+      <rect x="1" y="12" width="2" height="2" fill="var(--mint)"/>
+      <rect x="3" y="10" width="2" height="2" fill="var(--mint)"/>
+      <rect x="5" y="8" width="2" height="2" fill="var(--mint)"/>
+      <rect x="7" y="6" width="2" height="2" fill="var(--mint)"/>
+      <rect x="9" y="8" width="2" height="2" fill="var(--mint)"/>
+      <rect x="11" y="10" width="2" height="2" fill="var(--mint)"/>
+      <rect x="13" y="12" width="2" height="2" fill="var(--mint)"/>
+      <rect x="7.5" y="1.5" width="1" height="4.5" fill="var(--paper)"/>
+      <rect x="8.5" y="1.5" width="3" height="2" fill="var(--purple)"/>
+    </svg>
+  </div>
+</div>
+
+<div>
+  <div class="label">MAŁO — jak ikona na ekranie głównym (favicon)</div>
+  <div class="row">
+    <div class="tile t3">
+      <svg viewBox="0 0 16 16" width="72%" height="72%">
+        <rect x="1" y="12" width="2" height="2" fill="var(--mint)"/>
+        <rect x="3" y="10" width="2" height="2" fill="var(--mint)"/>
+        <rect x="5" y="8" width="2" height="2" fill="var(--mint)"/>
+        <rect x="7" y="6" width="2" height="2" fill="var(--mint)"/>
+        <rect x="9" y="8" width="2" height="2" fill="var(--mint)"/>
+        <rect x="11" y="10" width="2" height="2" fill="var(--mint)"/>
+        <rect x="13" y="12" width="2" height="2" fill="var(--mint)"/>
+        <rect x="7.5" y="1.5" width="1" height="4.5" fill="var(--paper)"/>
+        <rect x="8.5" y="1.5" width="3" height="2" fill="var(--purple)"/>
+      </svg>
+    </div>
+    <div class="tile t3">
+      <svg viewBox="0 0 16 16" width="72%" height="72%">
+        <rect x="1" y="12" width="2" height="2" fill="var(--mint)"/>
+        <rect x="3" y="10" width="2" height="2" fill="var(--mint)"/>
+        <rect x="5" y="8" width="2" height="2" fill="var(--mint)"/>
+        <rect x="7" y="6" width="2" height="2" fill="var(--mint)"/>
+        <rect x="9" y="8" width="2" height="2" fill="var(--mint)"/>
+        <rect x="11" y="10" width="2" height="2" fill="var(--mint)"/>
+        <rect x="13" y="12" width="2" height="2" fill="var(--mint)"/>
+        <rect x="7.5" y="1.5" width="1" height="4.5" fill="var(--paper)"/>
+        <rect x="8.5" y="1.5" width="3" height="2" fill="var(--purple)"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

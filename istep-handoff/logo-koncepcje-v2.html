@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-sTep — Logo, wersja 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12101A; --ink-panel:#1F1A29; --paper:#F3E9D6; --paper-dim:#9C90A6;
+    --outline:#0C0910; --mint:#4ADE9A; --mint-dark:#2C9A66;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased; padding:24px 18px 60px; }
+  .intro{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); margin-bottom:28px; line-height:1.6; text-align:center; }
+
+  .card{
+    background:var(--ink-panel); border:3px solid var(--outline); box-shadow:6px 6px 0 var(--outline);
+    padding:32px 20px; margin-bottom:28px; text-align:center;
+  }
+  .card-label{
+    font-family:'Press Start 2P',monospace; font-size:9px; color:var(--paper-dim);
+    margin-bottom:24px; letter-spacing:.04em;
+  }
+
+  .badge{
+    width:100px; height:100px; margin:0 auto 22px; background:var(--ink);
+    border:3px solid var(--outline); box-shadow:5px 5px 0 var(--outline);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .badge svg{ width:64px; height:64px; }
+
+  .wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:34px; }
+  .wm-mint{ color:var(--mint); }
+  .wm-rest{ color:var(--paper); }
+
+  .note{ margin-top:20px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); line-height:1.65; text-align:left; }
+  .note b{ color:var(--paper); }
+</style>
+</head>
+<body>
+<div class="intro">DWA POŁĄCZONE WARIANTY — góra ze schodków w dwóch obudowach</div>
+
+<div class="card">
+  <div class="card-label">WARIANT 1 · GÓRA-SCHODY, SAMODZIELNIE</div>
+  <div class="badge">
+    <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+      <!-- ascending steps forming the mountain slope -->
+      <rect x="1" y="13" width="3" height="2" fill="var(--mint-dark)"/>
+      <rect x="4" y="11" width="2" height="4" fill="var(--mint-dark)"/>
+      <rect x="6" y="9" width="2" height="6" fill="var(--mint)"/>
+      <rect x="8" y="7" width="2" height="8" fill="var(--mint)"/>
+      <rect x="10" y="9" width="2" height="6" fill="var(--mint-dark)"/>
+      <rect x="12" y="11" width="2" height="4" fill="var(--mint-dark)"/>
+      <!-- flag pole at summit -->
+      <rect x="8" y="3" width="1" height="4" fill="var(--paper)"/>
+      <!-- flag -->
+      <rect x="9" y="3" width="3" height="2" fill="var(--paper)"/>
+    </svg>
+  </div>
+  <div class="wordmark"><span class="wm-rest">I-s</span><span class="wm-mint">T</span><span class="wm-rest">ep</span></div>
+  <div class="note">
+    Sama góra, zbudowana ze wznoszących się schodków, z flagą na szczycie. Czytelne jako samodzielna ikona (ekran główny telefonu, favicon) — nie potrzebuje ramki, żeby działać.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-label">WARIANT 2 · GÓRA-SCHODY W OKNIE PRZEGLĄDARKI</div>
+  <div class="badge" style="width:110px; height:88px;">
+    <svg viewBox="0 0 20 16" shape-rendering="crispEdges" style="width:78px; height:64px;">
+      <!-- browser chrome -->
+      <rect x="0" y="0" width="20" height="3" fill="var(--paper)"/>
+      <rect x="1.2" y="1" width="1" height="1" fill="#C4544E"/>
+      <rect x="2.7" y="1" width="1" height="1" fill="#E3A83F"/>
+      <rect x="4.2" y="1" width="1" height="1" fill="var(--mint)"/>
+      <rect x="0" y="3" width="20" height="13" fill="none" stroke="var(--paper)" stroke-width="0.8"/>
+      <!-- mountain-steps scene inside the window -->
+      <rect x="2" y="13" width="2.5" height="2" fill="var(--mint-dark)"/>
+      <rect x="4.5" y="11.3" width="1.8" height="3.7" fill="var(--mint-dark)"/>
+      <rect x="6.3" y="9.6" width="1.8" height="5.4" fill="var(--mint)"/>
+      <rect x="8.1" y="7.9" width="1.8" height="7.1" fill="var(--mint)"/>
+      <rect x="9.9" y="9.6" width="1.8" height="5.4" fill="var(--mint-dark)"/>
+      <rect x="11.7" y="11.3" width="1.8" height="3.7" fill="var(--mint-dark)"/>
+      <rect x="8.5" y="4.5" width="0.9" height="3.4" fill="var(--paper)"/>
+      <rect x="9.4" y="4.5" width="2.4" height="1.6" fill="var(--paper)"/>
+    </svg>
+  </div>
+  <div class="wordmark"><span class="wm-rest">I-s</span><span class="wm-mint">T</span><span class="wm-rest">ep</span></div>
+  <div class="note">
+    Ta sama scena, ale "wyświetlona" na ekranie — dokłada trzeci motyw (IT/przeglądarka) bez rozbijania spójności. Ryzyko: przy bardzo małych rozmiarach (favicon 16×16) ramka okna może się zlewać ze szczegółami góry — wariant 1 jest bezpieczniejszy w mikroskali.
+  </div>
+</div>
+
+<div class="intro" style="margin-top:4px;">Kolor mięty jest teraz stałym kolorem marki, niezależnym od kolorów modułów (błękit, bursztyn) używanych w środku apki.</div>
+</body>
+</html>
