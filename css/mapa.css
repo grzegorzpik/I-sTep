@@ -67,7 +67,13 @@ svg.trail{ position:absolute; top:0; left:0; z-index:0; overflow:visible; }
   box-shadow:5px 5px 0 var(--outline);
   clip-path:polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
 }
-.beacon .core::after{ content:'◆'; font-size:20px; color:var(--gold-dark); }
+.beacon-icon{ width:36px; height:36px; }
+
+/* .node.current .core and .node.locked .core both out-specificity .beacon
+   .core (3 classes vs 2), which flattened the beacon to plain white/dim —
+   restore the gold "ready" look explicitly. */
+.node.beacon.current .core{ background:var(--gold); color:var(--ink); }
+.node.beacon.locked .core{ background:var(--ink-panel); }
 
 .trail path.remaining{ fill:none; stroke:var(--path-idle); stroke-width:4; stroke-dasharray:2 10; stroke-linecap:square; stroke-linejoin:miter; }
 .trail path.walked{ fill:none; stroke:var(--module-accent); stroke-width:4; stroke-dasharray:8 6; stroke-linecap:square; stroke-linejoin:miter; }

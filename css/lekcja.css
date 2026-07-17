@@ -52,7 +52,7 @@ section{ padding:0 20px; margin-bottom:20px; }
 
 .footer{
   position:fixed; bottom:0; left:0; right:0; z-index:5; background:var(--ink-panel);
-  border-top:3px solid var(--outline); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top:3px solid var(--outline); padding:16px 20px max(20px, calc(env(safe-area-inset-bottom) + 12px));
 }
 .footer-inner{ max-width:480px; margin:0 auto; }
 

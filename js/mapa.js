@@ -33,6 +33,19 @@
     </svg>`;
   }
 
+  const BEACON_ICON = `
+    <svg class="beacon-icon" viewBox="0 0 16 16" shape-rendering="crispEdges">
+      <rect x="7" y="0" width="1" height="3" fill="#0C0910"/>
+      <rect x="8" y="0" width="3" height="2" fill="#9C6C1F"/>
+      <rect x="2" y="3" width="12" height="2" fill="#0C0910"/>
+      <rect x="1" y="5" width="14" height="1" fill="#0C0910"/>
+      <rect x="1" y="6" width="14" height="8" fill="#F3E9D6" stroke="#0C0910" stroke-width="0.6"/>
+      <rect x="3" y="8" width="2.2" height="2.2" fill="#0C0910" opacity=".55"/>
+      <rect x="10.8" y="8" width="2.2" height="2.2" fill="#0C0910" opacity=".55"/>
+      <rect x="6.5" y="10" width="3" height="4" fill="#0C0910"/>
+      <rect x="7.2" y="11.2" width="1.6" height="1.6" fill="#9C6C1F"/>
+    </svg>`;
+
   function computeStatuses(lessons) {
     let currentAssigned = false;
     return lessons.map((lesson) => {
@@ -130,7 +143,7 @@
       node.className = `node beacon ${beaconUnlocked ? 'current' : 'locked'}`;
       node.setAttribute('data-point', '');
       node.style.cursor = 'default';
-      node.innerHTML = `<div class="core"></div><div class="label">${mod.beacon.label}</div>`;
+      node.innerHTML = `<div class="core">${BEACON_ICON}</div><div class="label">${mod.beacon.label}</div>`;
       row.appendChild(node);
       nodesEl.appendChild(row);
     }
