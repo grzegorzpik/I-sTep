@@ -33,7 +33,7 @@
 
   function renderEmptyState() {
     document.getElementById('app').innerHTML =
-      '<div class="empty-state">Ta lekcja nie jest jeszcze gotowa. <a href="index.html">Wróć do mapy</a></div>';
+      '<div class="empty-state">Ta lekcja nie jest jeszcze gotowa. <a href="mapa.html">Wróć do mapy</a></div>';
   }
 
   function renderProgressIndicator() {
@@ -207,7 +207,7 @@
     nextBtn.textContent = 'Wracam do mapy...';
 
     setTimeout(() => {
-      window.location.href = 'index.html';
+      window.location.href = 'mapa.html';
     }, 900);
   }
 

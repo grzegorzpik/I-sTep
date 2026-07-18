@@ -22,7 +22,7 @@
 
   function renderGuardState(message) {
     document.getElementById('app').innerHTML =
-      `<div class="empty-state">${message} <a href="index.html">Wróć do mapy</a></div>`;
+      `<div class="empty-state">${message} <a href="mapa.html">Wróć do mapy</a></div>`;
   }
 
   function spawnConfetti() {

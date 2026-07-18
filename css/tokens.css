@@ -13,6 +13,10 @@
   --path-idle:#3A3145;
   --danger:#C4544E;
   --success:#6FA860;
+  /* Fixed brand identity color (logo/splash) — independent of any
+     module's own accent tone, see README-HANDOFF's palette section. */
+  --brand-mint:#4ADE9A;
+  --brand-purple:#9C7FD4;
 }
 
 *{ box-sizing:border-box; margin:0; padding:0; }

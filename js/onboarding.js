@@ -4,7 +4,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     // Already onboarded (and not here via a fresh reset) — nothing to do here.
     if (state.hasProfile()) {
-      window.location.href = 'index.html';
+      window.location.href = 'mapa.html';
       return;
     }
 
@@ -39,7 +39,7 @@
       const name = nameInput.value.trim();
       if (!name) return;
       state.saveProfile({ name, color: selectedColor });
-      window.location.href = 'index.html';
+      window.location.href = 'mapa.html';
     });
   });
 })();

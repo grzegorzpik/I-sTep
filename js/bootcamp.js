@@ -23,7 +23,7 @@
 
   function renderEmptyState() {
     document.getElementById('app').innerHTML =
-      '<div class="empty-state">Ten bootcamp nie jest jeszcze dostępny — ukończ najpierw wszystkie mikrolekcje i quiz modułu. <a href="index.html">Wróć do mapy</a></div>';
+      '<div class="empty-state">Ten bootcamp nie jest jeszcze dostępny — ukończ najpierw wszystkie mikrolekcje i quiz modułu. <a href="mapa.html">Wróć do mapy</a></div>';
   }
 
   function buildStartPrompt(mod) {
