@@ -34,10 +34,11 @@ body{
 .topbar{ display:flex; align-items:center; justify-content:space-between; padding:22px 20px 10px; }
 .logo{
   font-family:'Silkscreen',monospace; font-weight:700; font-size:16px;
-  letter-spacing:.04em; color:var(--paper);
-  display:flex; align-items:center; gap:8px;
+  letter-spacing:.02em; display:flex; align-items:center; gap:6px;
 }
-.logo::before{ content:''; width:12px; height:12px; background:var(--module-accent); border:2px solid var(--outline); }
+.logo .logo-chevron{ width:11px; height:16px; }
+.logo .wm-purple{ color:var(--brand-purple); }
+.logo .wm-cream{ color:var(--paper); }
 
 .back{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:6px; text-decoration:none; }
 .back svg{ width:14px; height:14px; }

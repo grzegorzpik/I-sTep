@@ -13,8 +13,9 @@ body{
 @keyframes popIn{ to{ opacity:1; transform:scale(1); } }
 
 .companion-head{ width:min(220px, 58vw); height:auto; filter:drop-shadow(4px 4px 0 var(--outline)); }
-.eyes{ transform-box:fill-box; transform-origin:50% 50%; animation:blink 4.2s infinite; }
-@keyframes blink{ 0%,90%,100%{ transform:scaleY(1); } 94%{ transform:scaleY(.15); } }
+.eyes{ transform-box:fill-box; transform-origin:50% 50%; }
+.eyes.blink-once{ animation:blinkOnce .35s steps(2); }
+@keyframes blinkOnce{ 0%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.15); } }
 
 .wordmark-bottom{
   display:flex; align-items:center; gap:10px; padding-bottom:64px;

@@ -13,8 +13,15 @@
     document.getElementById('stage').classList.add('in');
     document.getElementById('wordmarkBottom').classList.add('in');
 
+    // Trigger the blink explicitly rather than looping it ambiently — the
+    // splash is on screen so briefly that an ambient loop might never
+    // land inside the visible window.
+    setTimeout(() => {
+      document.querySelector('.eyes').classList.add('blink-once');
+    }, 900);
+
     setTimeout(() => {
       window.location.href = destination;
-    }, 1900);
+    }, 2100);
   });
 })();
