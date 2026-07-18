@@ -91,7 +91,7 @@
       toast.classList.add('show');
 
       setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = `ukonczenie-modulu.html?module=${encodeURIComponent(mod.id)}`;
       }, 1400);
     });
   });

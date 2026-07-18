@@ -138,6 +138,11 @@
       .join('');
   }
 
+  function switchTab(name) {
+    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === name));
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     if (!state.hasProfile()) {
       window.location.href = 'onboarding.html';
@@ -145,12 +150,7 @@
     }
 
     document.querySelectorAll('.tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-        document.querySelectorAll('.panel').forEach((p) => p.classList.remove('active'));
-        tab.classList.add('active');
-        document.getElementById(tab.dataset.tab).classList.add('active');
-      });
+      tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
 
     renderBadges();
@@ -162,5 +162,14 @@
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) overlay.classList.remove('open');
     });
+
+    // Deep link from the module-completion screen: ?tab=dyplomy&module=<id>
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'dyplomy') {
+      switchTab('dyplomy');
+      const modId = params.get('module');
+      const index = content.modules.findIndex((m) => m.id === modId);
+      if (index !== -1) openModal(content.modules[index], index);
+    }
   });
 })();
