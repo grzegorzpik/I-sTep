@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I-sTep — Mikrolekcja</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/lekcja.css">
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <a class="back" href="mapa.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      MAPA
+    </a>
+    <div class="progress-dots" id="progressDots"></div>
+  </div>
+
+  <div class="eyebrow" id="eyebrow"></div>
+  <h1 id="lessonTitle"></h1>
+
+  <section id="teachingSection">
+    <div class="body-text" id="bodyText"></div>
+    <div class="analogy">
+      <div class="a-label">ANALOGIA</div>
+      <p id="analogyText"></p>
+    </div>
+  </section>
+
+  <div class="divider" id="divider">SPRAWDŹ SIĘ</div>
+
+  <section>
+    <div class="question" id="questionText"></div>
+    <div id="options"></div>
+    <div class="feedback" id="feedback"></div>
+  </section>
+</div>
+
+<div class="xp-toast" id="xpToast">+10 XP</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <button class="btn-primary" id="nextBtn" disabled>Sprawdź</button>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/content.js"></script>
+<script src="js/lekcja.js"></script>
+</body>
+</html>

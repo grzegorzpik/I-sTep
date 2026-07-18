@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Szlak — Mikrolekcja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1622; --ink-panel:#241D2C; --paper:#F3E9D6; --paper-dim:#9C90A6;
+    --outline:#0C0910; --module-accent:#4E8FC4; --gold:#E3A83F; --path-idle:#3A3145;
+    --danger:#C4544E; --success:#6FA860;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .app{ max-width:480px; margin:0 auto; min-height:100vh; padding-bottom:110px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:20px 20px 6px; }
+  .back{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:6px; }
+  .back svg{ width:14px; height:14px; }
+  .progress-dots{ display:flex; gap:5px; }
+  .dot{ width:8px; height:8px; background:var(--path-idle); }
+  .dot.done{ background:var(--module-accent); }
+  .dot.current{ background:var(--gold); }
+
+  .eyebrow{ padding:16px 20px 4px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--module-accent); letter-spacing:.06em; }
+  h1{ padding:0 20px 18px; font-family:'Silkscreen',monospace; font-size:23px; }
+
+  section{ padding:0 20px; margin-bottom:20px; }
+  .body-text{ font-size:14px; color:#DCD3E6; line-height:1.65; }
+  .body-text b{ color:var(--paper); }
+
+  .analogy{
+    margin-top:16px; background:var(--ink-panel); border:3px solid var(--module-accent);
+    box-shadow:4px 4px 0 var(--outline); padding:16px;
+  }
+  .analogy .a-label{ font-family:'Press Start 2P',monospace; font-size:8.5px; color:var(--module-accent); margin-bottom:8px; }
+  .analogy p{ font-size:13px; color:#C9BFD4; line-height:1.6; }
+
+  .divider{
+    display:flex; align-items:center; gap:12px; margin:26px 20px 18px;
+    font-family:'Press Start 2P',monospace; font-size:9px; color:var(--paper-dim);
+  }
+  .divider::before, .divider::after{ content:''; flex:1; height:2px; background:var(--path-idle); }
+
+  .question{ font-family:'Silkscreen',monospace; font-size:16px; margin-bottom:16px; }
+
+  .option{
+    display:block; width:100%; text-align:left; padding:13px 14px; margin-bottom:10px;
+    background:var(--ink-panel); border:3px solid var(--path-idle); color:var(--paper);
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:500; cursor:pointer;
+  }
+  .option.selected{ border-color:var(--gold); box-shadow:3px 3px 0 var(--outline); }
+  .option.correct{ border-color:var(--success); background:#6FA86022; }
+  .option.wrong{ border-color:var(--danger); background:#C4544E22; }
+  .option:disabled{ cursor:default; }
+
+  .feedback{
+    display:none; margin-bottom:16px; padding:12px 14px; border:2px solid var(--path-idle);
+    font-size:12.5px; color:var(--paper-dim); line-height:1.5; font-family:'JetBrains Mono',monospace;
+  }
+  .feedback.show{ display:block; }
+  .feedback.ok{ border-color:var(--success); color:var(--paper); }
+  .feedback.bad{ border-color:var(--danger); color:var(--paper); }
+  .feedback .hint{ margin-top:10px; padding-top:10px; border-top:1px dashed var(--path-idle); color:var(--gold); }
+  .btn-retry{
+    margin-top:12px; font-family:'JetBrains Mono',monospace; font-weight:600; font-size:12px;
+    padding:9px 14px; background:var(--danger); border:2px solid var(--outline); color:var(--paper); cursor:pointer;
+  }
+  .btn-retry:active{ transform:translate(1px,1px); }
+
+  .footer{
+    position:fixed; bottom:0; left:0; right:0; z-index:5; background:var(--ink-panel);
+    border-top:3px solid var(--outline); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  }
+  .footer-inner{ max-width:480px; margin:0 auto; }
+  .btn-primary{
+    width:100%; font-family:'Silkscreen',monospace; font-weight:700; font-size:15px; padding:14px;
+    background:var(--path-idle); border:3px solid var(--outline); color:var(--paper-dim); cursor:not-allowed;
+  }
+  .btn-primary.ready{ background:var(--gold); color:var(--ink); cursor:pointer; box-shadow:4px 4px 0 var(--outline); }
+  .btn-primary.ready:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 var(--outline); }
+  .btn-primary.retry{ background:var(--danger); color:var(--paper); cursor:pointer; box-shadow:4px 4px 0 var(--outline); }
+  .btn-primary.retry:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 var(--outline); }
+
+  .xp-toast{
+    position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-20px);
+    z-index:20; background:var(--gold); border:3px solid var(--outline); box-shadow:4px 4px 0 var(--outline);
+    padding:10px 18px; font-family:'Press Start 2P',monospace; font-size:12px; color:var(--ink);
+    opacity:0; transition:opacity .25s ease, transform .25s ease;
+  }
+  .xp-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      MAPA
+    </div>
+    <div class="progress-dots">
+      <div class="dot done"></div><div class="dot done"></div><div class="dot current"></div>
+      <div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+
+  <div class="eyebrow">MODUŁ 0 · MIKROLEKCJA 3</div>
+  <h1>Czym jest API?</h1>
+
+  <section>
+    <div class="body-text">
+      API to <b>umówiony sposób</b>, w jaki jedna aplikacja może poprosić drugą o dane albo działanie — bez wiedzy, co dzieje się „w środku" tej drugiej.
+    </div>
+    <div class="analogy">
+      <div class="a-label">ANALOGIA</div>
+      <p>To jak kelner w restauracji. Nie idziesz do kuchni gotować sam — mówisz kelnerowi, czego chcesz, on przekazuje to kuchni, a potem przynosi Ci gotowe danie. Nie musisz wiedzieć, co dokładnie dzieje się w kuchni.</p>
+    </div>
+  </section>
+
+  <div class="divider">SPRAWDŹ SIĘ</div>
+
+  <section>
+    <div class="question">Co najlepiej opisuje rolę API w Twojej aplikacji do pogody?</div>
+
+    <button class="option" data-correct="false">To baza danych, w której trzymasz historię pomiarów</button>
+    <button class="option" data-correct="true">To „kelner" pośredniczący między Twoją apką a serwerem pogodowym</button>
+    <button class="option" data-correct="false">To wygląd graficzny ekranu pogody</button>
+
+    <div class="feedback" id="feedback"></div>
+  </section>
+</div>
+
+<div class="xp-toast" id="xpToast">+10 XP</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <button class="btn-primary" id="nextBtn" disabled>Zaliczone</button>
+  </div>
+</div>
+
+<script>
+let answered = false;
+let wrongAttempts = 0;
+
+document.querySelectorAll('.option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    if(answered) return;
+    const isCorrect = opt.dataset.correct === 'true';
+    document.querySelectorAll('.option').forEach(o => o.disabled = true);
+
+    const nextBtn = document.getElementById('nextBtn');
+
+    if(isCorrect){
+      answered = true;
+      opt.classList.add('correct');
+      const fb = document.getElementById('feedback');
+      fb.innerHTML = 'Dokładnie tak — API pośredniczy w rozmowie, nie jest samą treścią.';
+      fb.classList.remove('bad');
+      fb.classList.add('show','ok');
+
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('retry');
+      nextBtn.classList.add('ready');
+      nextBtn.textContent = 'Zaliczone';
+    } else {
+      wrongAttempts++;
+      opt.classList.add('wrong');
+      const fb = document.getElementById('feedback');
+      let html = 'Niestety, to zła odpowiedź.';
+      if(wrongAttempts >= 2){
+        html += '<div class="hint">Podpowiedź: wróć do analogii wyżej — kto tam nie gotuje sam, tylko przekazuje zamówienie do kuchni i przynosi gotowe danie?</div>';
+      }
+      fb.innerHTML = html;
+      fb.classList.remove('ok');
+      fb.classList.add('show','bad');
+
+      nextBtn.disabled = false;
+      nextBtn.classList.remove('ready');
+      nextBtn.classList.add('retry');
+      nextBtn.textContent = 'Spróbuj jeszcze raz';
+    }
+  });
+});
+
+document.getElementById('nextBtn').addEventListener('click', function(){
+  if(this.classList.contains('retry')){
+    document.querySelectorAll('.option').forEach(o => {
+      o.disabled = false;
+      o.classList.remove('wrong','selected');
+    });
+    document.getElementById('feedback').classList.remove('show','bad');
+    document.getElementById('feedback').innerHTML = '';
+    this.disabled = true;
+    this.classList.remove('retry');
+    this.textContent = 'Zaliczone';
+    return;
+  }
+
+  if(!this.classList.contains('ready')) return;
+  const toast = document.getElementById('xpToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1600);
+  this.textContent = 'Wracam do mapy...';
+});
+</script>
+</body>
+</html>

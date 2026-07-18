@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-sTep — Koncepcje logo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1622; --ink-panel:#241D2C; --paper:#F3E9D6; --paper-dim:#9C90A6;
+    --outline:#0C0910; --module-accent:#4E8FC4; --gold:#E3A83F;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased; padding:24px 18px 60px; }
+  .intro{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); margin-bottom:28px; line-height:1.6; text-align:center; }
+
+  .card{
+    background:var(--ink-panel); border:3px solid var(--outline); box-shadow:6px 6px 0 var(--outline);
+    padding:28px 20px; margin-bottom:28px; text-align:center;
+  }
+  .card-label{
+    font-family:'Press Start 2P',monospace; font-size:9px; color:var(--paper-dim);
+    margin-bottom:22px; letter-spacing:.04em;
+  }
+
+  /* CONCEPT A: pure wordmark, I+T color-paired */
+  .wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:44px; letter-spacing:.01em; }
+  .wm-i, .wm-t{ color:var(--module-accent); }
+  .wm-rest{ color:var(--paper); }
+
+  /* CONCEPT B: icon badge, staircase = "1" */
+  .badge{
+    width:88px; height:88px; margin:0 auto; background:var(--gold);
+    border:3px solid var(--outline); box-shadow:5px 5px 0 var(--outline);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .badge svg{ width:52px; height:52px; }
+
+  /* CONCEPT C: combined lockup */
+  .lockup{ display:flex; align-items:center; justify-content:center; gap:14px; }
+  .lockup .badge{ width:56px; height:56px; box-shadow:4px 4px 0 var(--outline); }
+  .lockup .badge svg{ width:32px; height:32px; }
+  .lockup .wordmark{ font-size:28px; }
+
+  .note{ margin-top:18px; font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); line-height:1.6; text-align:left; }
+  .note b{ color:var(--paper); }
+</style>
+</head>
+<body>
+<div class="intro">TRZY KIERUNKI DO WYBORU — nie muszą się wykluczać, mogą żyć razem jako system (patrz koncepcja C)</div>
+
+<div class="card">
+  <div class="card-label">KONCEPCJA A · SAM NAPIS</div>
+  <div class="wordmark"><span class="wm-i">I</span><span class="wm-rest">s</span><span class="wm-t">T</span><span class="wm-rest">ep</span></div>
+  <div class="note">
+    <b>I</b> i <b>T</b> pomalowane tym samym kolorem — oko samo składa je w "IT", zanim ktoś przeczyta całość. "s" i "ep" zostają w tle. Bez ikony — czysta typografia, szybka do wdrożenia wszędzie (nagłówki, favicon tekstowy).
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-label">KONCEPCJA B · SAMA PLAKIETKA</div>
+  <div class="badge">
+    <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+      <rect x="10" y="2" width="3" height="3" fill="#1B1622"/>
+      <rect x="7" y="5" width="3" height="3" fill="#1B1622"/>
+      <rect x="4" y="8" width="3" height="3" fill="#1B1622"/>
+      <rect x="9" y="5" width="4" height="9" fill="#1B1622"/>
+      <rect x="9" y="12" width="4" height="2" fill="#1B1622"/>
+    </svg>
+  </div>
+  <div class="note">
+    Trzy pikselowe schodki (krok — "step") prowadzą do pionowej belki, która sama w sobie czyta się jak cyfra <b>1</b> / litera <b>I</b>. Działa jako samodzielna ikona — na ekranie głównym telefonu, jako favicon, w miejscach gdzie napis się nie zmieści.
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-label">KONCEPCJA C · SYSTEM (A + B RAZEM)</div>
+  <div class="lockup">
+    <div class="badge">
+      <svg viewBox="0 0 16 16" shape-rendering="crispEdges">
+        <rect x="10" y="2" width="3" height="3" fill="#1B1622"/>
+        <rect x="7" y="5" width="3" height="3" fill="#1B1622"/>
+        <rect x="4" y="8" width="3" height="3" fill="#1B1622"/>
+        <rect x="9" y="5" width="4" height="9" fill="#1B1622"/>
+        <rect x="9" y="12" width="4" height="2" fill="#1B1622"/>
+      </svg>
+    </div>
+    <div class="wordmark"><span class="wm-i">I</span><span class="wm-rest">s</span><span class="wm-t">T</span><span class="wm-rest">ep</span></div>
+  </div>
+  <div class="note">
+    Plakietka do ikony apki / favicona, pełny lockup do nagłówków i onboardingu. Dwa formaty jednego znaku — tak jak większość realnych apek to rozwiązuje (np. sam symbol na ekranie głównym, pełna nazwa w środku).
+  </div>
+</div>
+
+<div class="intro" style="margin-top:4px;">Kolor plakietki (bursztyn) to na razie neutralny wybór — może też przyjmować kolor aktualnego modułu, tak jak dyplomy w Dzienniku.</div>
+</body>
+</html>

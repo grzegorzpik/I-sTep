@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I-sTep — Bootcamp</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/bootcamp.css">
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <a class="back" href="mapa.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      WRÓĆ DO MAPY
+    </a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-icon" id="heroIcon"></div>
+    <div class="eyebrow" id="heroEyebrow"></div>
+    <h1 id="heroTitle"></h1>
+  </div>
+
+  <section>
+    <div class="section-label">CEL</div>
+    <div class="body-text" id="goalText"></div>
+  </section>
+
+  <section>
+    <div class="section-label">WYKORZYSTASZ TU</div>
+    <div class="tags" id="conceptTags"></div>
+  </section>
+
+  <section>
+    <div class="card">
+      <p>To zadanie realizujesz w rozmowie — nie tutaj. Skopiuj gotowy prompt startowy i przejdź do Claude.</p>
+      <button class="btn-copy" id="startBtn">Skopiuj prompt startowy</button>
+      <div class="toast" id="startToast">Skopiowano do schowka</div>
+
+      <div class="prompt-box" id="startPromptBox">
+        <div class="p-label">Podgląd promptu</div>
+        <pre id="startPromptText"></pre>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider">GDY SKOŃCZYSZ</div>
+
+  <section>
+    <div class="section-label">PRZEŚLIJ DOWÓD</div>
+    <div class="upload-zone" id="uploadZone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+      <div class="u-title" id="uploadTitle">Dodaj zrzut ekranu, plik lub link</div>
+      <div class="u-sub" id="uploadSub">dotknij, aby wybrać plik</div>
+    </div>
+    <input type="file" id="fileInput" hidden>
+
+    <textarea id="commentInput" placeholder="Krótki komentarz: co zrobiłeś, gdzie utknąłeś (opcjonalnie)"></textarea>
+
+    <button class="btn-generate" id="genBtn" disabled>Wygeneruj prompt walidacyjny</button>
+
+    <div class="prompt-box" id="promptBox">
+      <div class="p-label">Skopiuj do rozmowy z Claude</div>
+      <pre id="promptText"></pre>
+      <button class="btn-copy" id="copyBtn">Kopiuj prompt</button>
+      <div class="toast" id="toast">Skopiowano do schowka</div>
+    </div>
+
+    <button class="btn-complete" id="completeBtn" disabled>Oznacz bootcamp jako ukończony</button>
+  </section>
+</div>
+
+<div class="xp-toast" id="xpToast">+50 XP</div>
+
+<script src="js/state.js"></script>
+<script src="js/content.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/bootcamp.js"></script>
+</body>
+</html>

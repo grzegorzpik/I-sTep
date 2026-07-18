@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I-sTep</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/start.css">
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <svg class="companion-head" viewBox="0 0 16 8.6" shape-rendering="crispEdges">
+    <rect x="7" y="0" width="2" height="1.1" fill="var(--bot-body)"/>
+    <circle cx="8" cy="0.5" r="0.85" fill="var(--gold)"/>
+    <rect x="3.2" y="1.6" width="9.6" height="6.8" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.5"/>
+    <rect x="4.4" y="3.2" width="7.2" height="3.6" fill="var(--ink)"/>
+    <g class="eyes">
+      <path d="M5.6,5.0 L6.2,4.4 L6.8,5.0" stroke="var(--bot-body)" stroke-width="0.65" fill="none" stroke-linecap="square" stroke-linejoin="miter"/>
+      <path d="M9.0,5.0 L9.6,4.4 L10.2,5.0" stroke="var(--bot-body)" stroke-width="0.65" fill="none" stroke-linecap="square" stroke-linejoin="miter"/>
+    </g>
+  </svg>
+</div>
+
+<div class="wordmark-bottom" id="wordmarkBottom">
+  <svg class="chevron" viewBox="0 0 8 12" shape-rendering="crispEdges">
+    <rect x="0" y="0" width="2" height="2" fill="var(--brand-mint)"/>
+    <rect x="2" y="2" width="2" height="2" fill="var(--brand-mint)"/>
+    <rect x="4" y="4" width="2" height="2" fill="var(--brand-mint)"/>
+    <rect x="2" y="6" width="2" height="2" fill="var(--brand-mint)"/>
+    <rect x="0" y="8" width="2" height="2" fill="var(--brand-mint)"/>
+  </svg>
+  <div class="wordmark">
+    <span class="wm-purple">I</span><span class="wm-cream">-s</span><span class="wm-purple">T</span><span class="wm-cream">ep</span>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/start.js"></script>
+</body>
+</html>

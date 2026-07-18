@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-sTep — Animacja startowa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12101A; --paper:#F3E9D6; --mint:#4ADE9A; --purple:#9C7FD4; --outline:#0C0910;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+  .stage{ position:relative; width:280px; height:280px; }
+
+  .subtitle{
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; color:#9C90A6; letter-spacing:.02em;
+    opacity:0; text-align:center;
+  }
+  .subtitle.show{ animation:subFadeIn .5s ease-out forwards; }
+  @keyframes subFadeIn{ to{ opacity:1; } }
+
+  .wordmark-row{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .text-part{ opacity:0; }
+  .text-part.enter{ animation:fadeIn .4s ease-out forwards; }
+  .text-part.exit{ animation:fadeUp .4s ease-in forwards; }
+  @keyframes fadeIn{ to{ opacity:1; } }
+  @keyframes fadeUp{ from{ opacity:1; transform:translateY(0); } to{ opacity:0; transform:translateY(-12px); } }
+
+  .wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:40px; display:flex; }
+  .wm-purple{ color:var(--purple); }
+  .wm-cream{ color:var(--paper); }
+
+  /* THE ONE mountain shape — same chevron throughout, never swapped for a different shape */
+  .chevron{
+    width:26px; height:36px;
+    opacity:0;
+    transform-origin:center center;
+  }
+  .chevron.enter{ animation:chevronIn .4s ease-out forwards; }
+  @keyframes chevronIn{ to{ opacity:1; } }
+
+  .chevron.travel{
+    animation: chevronTravel .8s cubic-bezier(.3,.1,.25,1) forwards;
+  }
+  @keyframes chevronTravel{
+    to{ transform: translate(var(--dx), var(--dy)) rotate(-92deg) scale(var(--scale)); }
+  }
+
+  .chevron.idle{
+    animation: chevronIdle 2.4s steps(4) infinite;
+  }
+  @keyframes chevronIdle{
+    0%,100%{ transform: translate(var(--dx), var(--dy)) rotate(-92deg) scale(var(--scale)); }
+    50%{ transform: translate(var(--dx), calc(var(--dy) - 4px)) rotate(-92deg) scale(var(--scale)); }
+  }
+
+  /* flag — small, planted at the measured peak of the landed chevron */
+  .flag-group{
+    position:absolute; opacity:0;
+    transform-origin:bottom center;
+  }
+  .flag-group.show{ animation:flagGroupShow .01s forwards; }
+  @keyframes flagGroupShow{ to{ opacity:1; } }
+
+  .flag-group.idle{ animation:flagGroupIdle 2.4s steps(4) infinite; }
+  @keyframes flagGroupIdle{
+    0%,100%{ transform:translateX(-50%) translateY(0); }
+    50%{ transform:translateX(-50%) translateY(-4px); }
+  }
+
+  .pole{ transform-origin:bottom center; transform:scaleY(0); }
+  .pole.grow{ animation:poleGrow .3s steps(4) forwards; }
+  @keyframes poleGrow{ to{ transform:scaleY(1); } }
+
+  .flag{ transform-origin:left center; transform:scaleX(0); }
+  .flag.unfurl{ animation:flagUnfurl .25s steps(3) forwards; }
+  @keyframes flagUnfurl{ to{ transform:scaleX(1); } }
+
+  /* companion — a bit bigger than before, positioned dynamically via JS */
+  .companion{
+    position:absolute; width:30px; height:30px;
+    opacity:0;
+  }
+  .companion.walk-in{
+    animation: companionWalk 1.7s steps(4) forwards;
+  }
+  @keyframes companionWalk{
+    0%{   opacity:1; transform:translate(var(--startX), var(--startY)); }
+    25%{  opacity:1; transform:translate(var(--p1X), var(--p1Y)); }
+    50%{  opacity:1; transform:translate(var(--p2X), var(--p2Y)); }
+    75%{  opacity:1; transform:translate(var(--p3X), var(--p3Y)); }
+    100%{ opacity:1; transform:translate(var(--peakX), var(--peakY)); }
+  }
+  .companion .arm-l, .companion .arm-r{ transform-box:fill-box; }
+  .companion .arm-l{ transform-origin:100% 15%; }
+  .companion .arm-r{ transform-origin:0% 15%; }
+  .companion.walk-in .arm-l{ animation:armSwingL 0.4s steps(2) infinite; }
+  .companion.walk-in .arm-r{ animation:armSwingR 0.4s steps(2) infinite; }
+  @keyframes armSwingL{ 0%,100%{ transform:rotate(-15deg); } 50%{ transform:rotate(20deg); } }
+  @keyframes armSwingR{ 0%,100%{ transform:rotate(15deg); } 50%{ transform:rotate(-20deg); } }
+
+  .companion.victory .arm-l{ animation:none; transform:rotate(-60deg); }
+  .companion.victory .arm-r{ animation:none; transform:rotate(60deg); }
+
+  .companion.planting .arm-l{ animation:none; transform:rotate(-15deg); }
+  .companion.planting .arm-r{ animation:none; transform:rotate(35deg); }
+
+  .companion.idle{ animation:companionIdle 2.4s steps(4) infinite; }
+  @keyframes companionIdle{
+    0%,100%{ transform:translate(var(--peakX), var(--peakY)); }
+    50%{ transform:translate(var(--peakX), calc(var(--peakY) - 4px)); }
+  }
+
+  .replay{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace; font-size:10px; color:#9C90A6;
+    background:#1F1A29; border:2px solid var(--outline); padding:7px 12px; cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="wordmark-row">
+    <svg class="chevron" id="chevron" viewBox="0 0 8 12" shape-rendering="crispEdges">
+      <rect x="0" y="0" width="2" height="2" fill="var(--mint)"/>
+      <rect x="2" y="2" width="2" height="2" fill="var(--mint)"/>
+      <rect x="4" y="4" width="2" height="2" fill="var(--mint)" id="chevronTip"/>
+      <rect x="2" y="6" width="2" height="2" fill="var(--mint)"/>
+      <rect x="0" y="8" width="2" height="2" fill="var(--mint)"/>
+    </svg>
+    <div class="wordmark text-part" id="wordmarkText">
+      <span class="wm-purple">I</span><span class="wm-cream">-s</span><span class="wm-purple">T</span><span class="wm-cream">ep</span>
+    </div>
+  </div>
+
+  <svg class="flag-group" id="flagGroup" viewBox="0 0 8 14" width="16" height="28" shape-rendering="crispEdges">
+    <rect class="pole" id="pole" x="3.2" y="3" width="1.4" height="11" fill="var(--paper)"/>
+    <rect class="flag" id="flag" x="4.6" y="3" width="3.2" height="2.4" fill="var(--purple)"/>
+  </svg>
+
+  <svg class="companion" id="companion" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <rect x="3.2" y="1.6" width="9.6" height="6.8" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.5"/>
+    <rect x="4.4" y="3.2" width="7.2" height="3.6" fill="var(--ink)"/>
+    <path d="M5.6,5.0 L6.2,4.4 L6.8,5.0" stroke="var(--purple)" stroke-width="0.65" fill="none" stroke-linecap="square"/>
+    <path d="M9.0,5.0 L9.6,4.4 L10.2,5.0" stroke="var(--purple)" stroke-width="0.65" fill="none" stroke-linecap="square"/>
+    <rect x="3" y="8.6" width="10" height="5.4" fill="var(--purple)" stroke="var(--outline)" stroke-width="0.5"/>
+    <rect class="arm-l" x="0.6" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+    <rect class="arm-r" x="13.2" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+    <rect x="4" y="14" width="2.8" height="2" fill="var(--outline)"/>
+    <rect x="9.2" y="14" width="2.8" height="2" fill="var(--outline)"/>
+  </svg>
+</div>
+
+<div class="subtitle" id="subtitle">Twój pierwszy krok w świecie IT.</div>
+
+<div class="replay" id="replay">↻ ODTWÓRZ PONOWNIE</div>
+
+<script>
+function playIntro(){
+  const stage = document.getElementById('stage');
+  const chevron = document.getElementById('chevron');
+  const text = document.getElementById('wordmarkText');
+  const flagGroup = document.getElementById('flagGroup');
+  const pole = document.getElementById('pole');
+  const flag = document.getElementById('flag');
+  const companion = document.getElementById('companion');
+  const subtitle = document.getElementById('subtitle');
+  let lockedChevronTransform = '';
+
+  // reset everything to base state
+  chevron.className = 'chevron';
+  text.className = 'wordmark text-part';
+  flagGroup.className = 'flag-group';
+  pole.className = 'pole';
+  flag.className = 'flag';
+  companion.className = 'companion';
+  subtitle.className = 'subtitle';
+  chevron.style.transform = '';
+  chevron.style.opacity = '';
+  companion.style.transform = '';
+  companion.style.opacity = '';
+  flagGroup.style.opacity = '';
+  void stage.offsetWidth;
+
+  // 1. wordmark appears
+  text.classList.add('enter');
+  chevron.classList.add('enter');
+
+  // 2. hold, then measure real positions and send the chevron flying toward stage-center
+  setTimeout(() => {
+    const stageRect = stage.getBoundingClientRect();
+    const chevRect = chevron.getBoundingClientRect();
+
+    const chevCenterX = chevRect.left + chevRect.width/2;
+    const chevCenterY = chevRect.top + chevRect.height/2;
+    const targetCenterX = stageRect.left + stageRect.width/2;
+    const targetCenterY = stageRect.top + stageRect.height/2 - 10; // slightly above dead-center
+
+    const dx = targetCenterX - chevCenterX;
+    const dy = targetCenterY - chevCenterY;
+    const scale = 3.6; // fixed — how much bigger the landed mountain is vs. the small wordmark chevron
+
+    chevron.style.setProperty('--dx', dx + 'px');
+    chevron.style.setProperty('--dy', dy + 'px');
+    chevron.style.setProperty('--scale', scale);
+    lockedChevronTransform = `translate(${dx}px, ${dy}px) rotate(-92deg) scale(${scale})`;
+
+    text.classList.remove('enter');
+    text.classList.add('exit');
+    chevron.classList.remove('enter');
+    chevron.style.opacity = '1';
+    chevron.classList.add('travel');
+  }, 900);
+
+  // 3. once it lands, lock its pose, then measure where it ACTUALLY ended up on screen
+  setTimeout(() => {
+    chevron.style.transform = lockedChevronTransform;
+    chevron.classList.remove('travel');
+
+    const stageRect = stage.getBoundingClientRect();
+    const landedRect = chevron.getBoundingClientRect();
+    const tipRect = document.getElementById('chevronTip').getBoundingClientRect();
+
+    // peak = the actual visible tip block (not the invisible rotated SVG rectangle, which is bigger)
+    const peakX = (tipRect.left + tipRect.width/2) - stageRect.left;
+    const peakY = (tipRect.top + tipRect.height/2) - stageRect.top;
+    const baseX = landedRect.left - stageRect.left - 6;
+    const baseY = (landedRect.top + landedRect.height) - stageRect.top - 10;
+
+    // position the flag group so its bottom-center sits exactly on the peak
+    flagGroup.style.left = peakX + 'px';
+    flagGroup.style.top = (peakY - 26) + 'px';
+    flagGroup.style.transform = 'translateX(-50%)';
+
+    // set companion's walk path as CSS custom properties (start -> three midpoints -> peak)
+    const midX = (baseX + peakX) / 2;
+    companion.style.setProperty('--startX', baseX + 'px');
+    companion.style.setProperty('--startY', baseY + 'px');
+    companion.style.setProperty('--p1X', (baseX + (peakX-baseX)*0.3) + 'px');
+    companion.style.setProperty('--p1Y', (baseY + (peakY-baseY)*0.3) + 'px');
+    companion.style.setProperty('--p2X', (baseX + (peakX-baseX)*0.6) + 'px');
+    companion.style.setProperty('--p2Y', (baseY + (peakY-baseY)*0.6) + 'px');
+    companion.style.setProperty('--p3X', (baseX + (peakX-baseX)*0.85) + 'px');
+    companion.style.setProperty('--p3Y', (baseY + (peakY-baseY)*0.85) + 'px');
+    companion.style.setProperty('--peakX', (peakX - 30) + 'px');
+    companion.style.setProperty('--peakY', (peakY + 2) + 'px');
+  }, 1700);
+
+  // 4. companion walks up
+  setTimeout(() => {
+    companion.classList.add('walk-in');
+  }, 1900);
+
+  // 5. at the summit: reach down and plant the flag
+  setTimeout(() => {
+    companion.style.opacity = '1';
+    companion.style.transform = 'translate(var(--peakX), var(--peakY))';
+    companion.classList.remove('walk-in');
+    companion.classList.add('planting');
+    flagGroup.classList.add('show');
+    pole.classList.add('grow');
+  }, 3600);
+
+  setTimeout(() => { flag.classList.add('unfurl'); }, 3850);
+
+  // 6. celebrate
+  setTimeout(() => {
+    companion.classList.remove('planting');
+    companion.classList.add('victory');
+  }, 4130);
+
+  // subtitle fades in once the flag is fully up and the celebration begins
+  setTimeout(() => {
+    subtitle.classList.add('show');
+  }, 4350);
+
+  // 7. idle bob — mountain, companion, and flag all breathe gently together
+  setTimeout(() => {
+    chevron.classList.add('idle');
+    companion.classList.add('idle');
+    flagGroup.style.opacity = '1'; // lock visibility before swapping animation
+    flagGroup.classList.remove('show');
+    flagGroup.classList.add('idle');
+  }, 4430);
+}
+
+window.addEventListener('load', playIntro);
+document.getElementById('replay').addEventListener('click', playIntro);
+</script>
+</body>
+</html>

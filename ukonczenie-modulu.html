@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I-sTep — Moduł ukończony</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/ukonczenie-modulu.css">
+</head>
+<body>
+<div class="flash" id="flash"></div>
+<div class="replay" id="replay">↻ ODTWÓRZ PONOWNIE</div>
+
+<div class="stage" id="app">
+  <div class="confetti-layer" id="confettiLayer"></div>
+
+  <div class="content">
+    <div class="eyebrow" id="eyebrow"></div>
+    <div class="headline" id="headline">MODUŁ UKOŃCZONY</div>
+    <div class="module-name" id="modName"></div>
+
+    <div class="bot-stage">
+      <div class="bot-shadow" id="botShadow"></div>
+      <div class="bot-victory-wrap" id="botVictory">
+        <svg class="bot-victory" viewBox="0 0 16 16" shape-rendering="crispEdges">
+          <rect x="7" y="0" width="2" height="1.1" fill="var(--bot-body)"/>
+          <circle cx="8" cy="0.5" r="0.85" fill="var(--gold)"/>
+          <rect x="3.2" y="1.6" width="9.6" height="6.8" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.5"/>
+          <rect x="4.4" y="3.2" width="7.2" height="3.6" fill="var(--ink)"/>
+          <path d="M5.6,5.0 L6.2,4.4 L6.8,5.0" stroke="var(--gold)" stroke-width="0.65" fill="none" stroke-linecap="square"/>
+          <path d="M9.0,5.0 L9.6,4.4 L10.2,5.0" stroke="var(--gold)" stroke-width="0.65" fill="none" stroke-linecap="square"/>
+          <rect x="3" y="8.6" width="10" height="5.4" fill="var(--bot-body)" stroke="var(--outline)" stroke-width="0.5"/>
+          <rect x="5.5" y="10.2" width="5" height="2.6" fill="var(--ink)"/>
+          <rect x="6.1" y="10.7" width="3.8" height="0.5" fill="var(--gold)"/>
+          <rect x="6.1" y="11.5" width="2.4" height="0.5" fill="var(--gold)"/>
+          <rect class="arm-l" x="0.6" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+          <rect class="arm-r" x="13.2" y="9.4" width="2.2" height="2.2" fill="var(--paper)" stroke="var(--outline)" stroke-width="0.4"/>
+          <rect x="4" y="14" width="2.8" height="2" fill="var(--outline)"/>
+          <rect x="9.2" y="14" width="2.8" height="2" fill="var(--outline)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="xp-panel" id="xpPanel">
+      <div class="lbl">Zdobyte doświadczenie w module</div>
+      <div class="val" id="xpVal">+0 XP</div>
+    </div>
+
+    <div class="actions" id="actions">
+      <button class="btn-primary" id="diplomaBtn">Zobacz dyplom</button>
+      <a class="btn-secondary" href="mapa.html">Wróć do mapy</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/content.js"></script>
+<script src="js/ukonczenie-modulu.js"></script>
+</body>
+</html>

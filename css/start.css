@@ -1,0 +1,30 @@
+:root{ --bot-body:var(--brand-purple); }
+
+body{
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  overflow:hidden;
+}
+
+.stage{
+  flex:1; width:100%; display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:scale(.85);
+}
+.stage.in{ animation:popIn .45s cubic-bezier(.2,1.4,.4,1) forwards; }
+@keyframes popIn{ to{ opacity:1; transform:scale(1); } }
+
+.companion-head{ width:min(220px, 58vw); height:auto; filter:drop-shadow(4px 4px 0 var(--outline)); }
+.eyes{ transform-box:fill-box; transform-origin:50% 50%; }
+.eyes.blink-once{ animation:blinkOnce .35s steps(2); }
+@keyframes blinkOnce{ 0%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.15); } }
+
+.wordmark-bottom{
+  display:flex; align-items:center; gap:10px; padding-bottom:64px;
+  opacity:0; transform:translateY(8px);
+}
+.wordmark-bottom.in{ animation:fadeUp .4s ease-out .25s forwards; }
+@keyframes fadeUp{ to{ opacity:1; transform:translateY(0); } }
+
+.chevron{ width:22px; height:32px; }
+.wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:32px; display:flex; }
+.wm-purple{ color:var(--brand-purple); }
+.wm-cream{ color:var(--paper); }

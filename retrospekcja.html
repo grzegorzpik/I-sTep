@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I-sTep — Retrospekcja</title>
+<link rel="icon" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/retrospekcja.css">
+</head>
+<body>
+<div class="app" id="app">
+  <div class="topbar">
+    <a class="back" href="mapa.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      MAPA
+    </a>
+  </div>
+
+  <div class="eyebrow" id="eyebrow"></div>
+  <h1>Zanim pójdziesz dalej</h1>
+  <div class="intro">Kilka pytań na gorąco — to trafi do Twojego dziennika. Nie musisz odpowiadać na wszystko wyczerpująco, liczy się szczerość, nie długość.</div>
+
+  <div class="field">
+    <label>Czego się nauczyłem? <span class="req-tag">WYMAGANE</span></label>
+    <textarea id="learnedInput" placeholder="Jedno zdanie wystarczy..."></textarea>
+  </div>
+
+  <div class="field">
+    <label>Co nadal jest dla mnie niejasne? <span class="opt-tag">opcjonalne</span></label>
+    <textarea id="unclearInput" placeholder="Bez tego nie ma prawdziwej retrospekcji"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Jak wykorzystałem to w swojej aplikacji? <span class="opt-tag">opcjonalne</span></label>
+    <textarea id="appliedInput" placeholder="Konkretna zmiana, nie teoria"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Jaki trik wizualny/animacyjny dodałem? <span class="opt-tag">opcjonalne</span></label>
+    <textarea id="visualInput" placeholder="Nawet drobiazg się liczy"></textarea>
+  </div>
+
+  <div class="rating-card">
+    <label>Jak oceniam przydatność tego modułu? <span class="req-tag">WYMAGANE</span></label>
+    <div class="hint">1 = niewiele mi dał · 5 = bardzo przydatny</div>
+    <div class="blocks-input" id="blocksInput">
+      <div class="rblock" data-val="1"></div>
+      <div class="rblock" data-val="2"></div>
+      <div class="rblock" data-val="3"></div>
+      <div class="rblock" data-val="4"></div>
+      <div class="rblock" data-val="5"></div>
+    </div>
+    <div class="rating-labels"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+  </div>
+</div>
+
+<div class="saved-toast" id="savedToast">Wpis zapisany w dzienniku</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <button class="btn-primary" id="saveBtn" disabled>Uzupełnij wymagane pole</button>
+  </div>
+</div>
+
+<script src="js/state.js"></script>
+<script src="js/content.js"></script>
+<script src="js/retrospekcja.js"></script>
+</body>
+</html>
