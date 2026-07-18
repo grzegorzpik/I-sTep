@@ -2,6 +2,20 @@
   const state = window.IStepState;
   const levels = window.IStepLevels;
 
+  function celebrateLevelUp(info) {
+    const badge = document.getElementById('levelBadge');
+    badge.classList.remove('level-up');
+    void badge.offsetWidth; // restart the animation
+    badge.classList.add('level-up');
+
+    const toast = document.getElementById('levelToast');
+    toast.textContent = `Nowy poziom: ${info.name}!`;
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2600);
+  }
+
   function renderLevel() {
     const xp = state.getProgress().xp;
     const info = levels.getLevelInfo(xp);
@@ -10,6 +24,7 @@
     document.getElementById('levelEyebrow').textContent = `Poziom ${info.level}`;
     document.getElementById('levelName').textContent = info.name;
     document.getElementById('xpNow').textContent = `${xp} XP`;
+    document.getElementById('xpValue').textContent = xp;
 
     const fill = document.getElementById('xpFill');
     const nextLevel = document.getElementById('nextLevel');
@@ -24,6 +39,12 @@
       document.getElementById('xpNext').textContent = '';
       nextLevel.textContent = 'Kolejne poziomy jeszcze niezaprojektowane.';
     }
+
+    const lastSeen = state.getLastSeenLevel();
+    if (lastSeen !== null && info.level > lastSeen) {
+      celebrateLevelUp(info);
+    }
+    state.setLastSeenLevel(info.level);
   }
 
   function renderCompanion() {

@@ -91,11 +91,3 @@ textarea::placeholder{ color:#5c5468; }
 
 .empty-state{ padding:40px 20px; font-size:14px; color:var(--paper-dim); line-height:1.6; }
 .empty-state a{ color:var(--gold); }
-
-.xp-toast{
-  position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-20px);
-  z-index:20; background:var(--gold); border:3px solid var(--outline); box-shadow:4px 4px 0 var(--outline);
-  padding:10px 18px; font-family:'Press Start 2P',monospace; font-size:12px; color:var(--ink);
-  opacity:0; transition:opacity .25s ease, transform .25s ease;
-}
-.xp-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }

@@ -6,6 +6,7 @@
   const STORAGE_KEY = 'istep_progress_v1';
   const PROFILE_KEY = 'istep_profile_v1';
   const JOURNAL_KEY = 'istep_journal_v1';
+  const LAST_SEEN_LEVEL_KEY = 'istep_last_seen_level_v1';
 
   function getProgress() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -44,6 +45,7 @@
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(PROFILE_KEY);
     localStorage.removeItem(JOURNAL_KEY);
+    localStorage.removeItem(LAST_SEEN_LEVEL_KEY);
   }
 
   function getProfile() {
@@ -100,6 +102,19 @@
     return getJournalEntries().some((e) => e.moduleId === moduleId);
   }
 
+  // Lets the UI detect "you just leveled up" (current level > last seen)
+  // without state.js itself knowing anything about levels or the DOM.
+  // null means "never recorded" — distinct from level 1, so a first-ever
+  // visit doesn't look like a level-up.
+  function getLastSeenLevel() {
+    const raw = localStorage.getItem(LAST_SEEN_LEVEL_KEY);
+    return raw === null ? null : parseInt(raw, 10);
+  }
+
+  function setLastSeenLevel(level) {
+    localStorage.setItem(LAST_SEEN_LEVEL_KEY, String(level));
+  }
+
   function exportData() {
     return JSON.stringify(
       {
@@ -151,5 +166,7 @@
     getJournalEntries,
     addJournalEntry,
     hasJournalEntryForModule,
+    getLastSeenLevel,
+    setLastSeenLevel,
   };
 })();

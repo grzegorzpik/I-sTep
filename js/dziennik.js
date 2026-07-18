@@ -149,6 +149,8 @@
       return;
     }
 
+    document.getElementById('xpValue').textContent = state.getProgress().xp;
+
     document.querySelectorAll('.tab').forEach((tab) => {
       tab.addEventListener('click', () => switchTab(tab.dataset.tab));
     });
