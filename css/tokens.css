@@ -38,6 +38,13 @@ body{
 .back{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:6px; text-decoration:none; }
 .back svg{ width:14px; height:14px; }
 
+/* fixed bottom action bar, shared by lesson/retrospekcja flow screens */
+.footer{
+  position:fixed; bottom:0; left:0; right:0; z-index:5; background:var(--ink-panel);
+  border-top:3px solid var(--outline); padding:16px 20px max(20px, calc(env(safe-area-inset-bottom) + 12px));
+}
+.footer-inner{ max-width:480px; margin:0 auto; }
+
 /* bottom nav, shared by every screen */
 .navbar{
   position:fixed; bottom:0; left:0; right:0; z-index:5;

@@ -140,10 +140,10 @@ Oceń, czy rozwiązanie faktycznie wykorzystuje powyższe pojęcia i wskaż, cze
       toast.classList.add('show');
 
       completeBtn.disabled = true;
-      completeBtn.textContent = 'Wracam do mapy...';
+      completeBtn.textContent = 'Przechodzę do retrospekcji...';
 
       setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = `retrospekcja.html?module=${encodeURIComponent(mod.id)}`;
       }, 900);
     });
   });

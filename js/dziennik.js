@@ -11,6 +11,16 @@
     return { doneCount, total: mod.lessons.length };
   }
 
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function journalEntryFor(moduleId) {
+    return state.getJournalEntries().find((e) => e.moduleId === moduleId) || null;
+  }
+
   function renderBadges() {
     const grid = document.getElementById('badgeGrid');
     grid.innerHTML = '';
@@ -57,11 +67,75 @@
       : mod.beacon
       ? 'Odblokuje się po ukończeniu bootcampu tego modułu.'
       : 'Bootcamp tego modułu nie jest jeszcze zaprojektowany.';
-    document.getElementById('modalNote').textContent =
-      'Pojawi się po dodaniu wpisu retrospekcji — ekran retrospekcji nie jest jeszcze zbudowany.';
+
+    const entry = journalEntryFor(mod.id);
+    document.getElementById('modalNote').textContent = entry
+      ? `„${entry.learned}”`
+      : 'Pojawi się po dodaniu wpisu retrospekcji dla tego modułu.';
     document.getElementById('modalStamp').textContent = bootcampDone ? 'UKOŃCZONY' : 'W TRAKCIE';
 
     document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function renderPendingBanner() {
+    const pendingMods = content.modules.filter(
+      (mod) => mod.beacon && state.isLessonDone(mod.beacon.id) && !state.hasJournalEntryForModule(mod.id)
+    );
+    document.getElementById('pendingBanner').innerHTML = pendingMods
+      .map(
+        (mod) => `
+        <div class="pending-card">
+          <div class="p-label">RETROSPEKCJA CZEKA</div>
+          <div class="p-title">${escapeHtml(mod.title)}</div>
+          <a class="p-btn" href="retrospekcja.html?module=${encodeURIComponent(mod.id)}">Napisz retrospekcję</a>
+        </div>`
+      )
+      .join('');
+  }
+
+  function renderEntries() {
+    const entries = state.getJournalEntries();
+    const entriesEl = document.getElementById('entriesList');
+    const emptyEl = document.getElementById('emptyState');
+
+    if (!entries.length) {
+      entriesEl.innerHTML = '';
+      emptyEl.classList.add('show');
+      return;
+    }
+    emptyEl.classList.remove('show');
+
+    entriesEl.innerHTML = entries
+      .map((entry) => {
+        const dateLabel = new Date(entry.createdAt)
+          .toLocaleDateString('pl-PL', { day: '2-digit', month: 'short' })
+          .toUpperCase();
+        const extraLines = [
+          entry.unclear && `<b>Co nadal niejasne?</b> ${escapeHtml(entry.unclear)}`,
+          entry.applied && `<b>Zastosowanie:</b> ${escapeHtml(entry.applied)}`,
+          entry.visualTrick && `<b>Trik wizualny:</b> ${escapeHtml(entry.visualTrick)}`,
+        ]
+          .filter(Boolean)
+          .join('<br>');
+        const blocks = [1, 2, 3, 4, 5]
+          .map((n) => `<div class="block ${n <= entry.usefulness ? 'on' : 'off'}"></div>`)
+          .join('');
+
+        return `
+          <div class="entry">
+            <div class="entry-date"><span>${escapeHtml(entry.moduleTitle.toUpperCase())}</span><span>${dateLabel}</span></div>
+            <div class="entry-title">Czego się nauczyłem?</div>
+            <div class="entry-text">${escapeHtml(entry.learned)}${extraLines ? '<br><br>' + extraLines : ''}</div>
+            <div class="entry-footer">
+              <div class="sprawczosc">
+                <span class="sprawczosc-label">Przydatność</span>
+                <div class="blocks">${blocks}</div>
+              </div>
+              <span class="stamp">ZAPISANO</span>
+            </div>
+          </div>`;
+      })
+      .join('');
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -80,6 +154,8 @@
     });
 
     renderBadges();
+    renderPendingBanner();
+    renderEntries();
 
     const overlay = document.getElementById('modalOverlay');
     document.getElementById('modalClose').addEventListener('click', () => overlay.classList.remove('open'));

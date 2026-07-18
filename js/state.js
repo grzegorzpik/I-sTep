@@ -5,6 +5,7 @@
 (function () {
   const STORAGE_KEY = 'istep_progress_v1';
   const PROFILE_KEY = 'istep_profile_v1';
+  const JOURNAL_KEY = 'istep_journal_v1';
 
   function getProgress() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -38,10 +39,11 @@
   }
 
   // Name only changes via a full reset (see koncepcja: "imię tylko przez reset"),
-  // so resetProgress() intentionally wipes both progress and profile.
+  // so resetProgress() intentionally wipes progress, profile and journal.
   function resetProgress() {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(PROFILE_KEY);
+    localStorage.removeItem(JOURNAL_KEY);
   }
 
   function getProfile() {
@@ -72,9 +74,40 @@
     return progress;
   }
 
+  function getJournalEntries() {
+    const raw = localStorage.getItem(JOURNAL_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveJournalEntries(entries) {
+    localStorage.setItem(JOURNAL_KEY, JSON.stringify(entries));
+  }
+
+  function addJournalEntry(entry) {
+    const entries = getJournalEntries();
+    entries.unshift({ ...entry, id: `entry-${Date.now()}`, createdAt: new Date().toISOString() });
+    saveJournalEntries(entries);
+    return entries;
+  }
+
+  function hasJournalEntryForModule(moduleId) {
+    return getJournalEntries().some((e) => e.moduleId === moduleId);
+  }
+
   function exportData() {
     return JSON.stringify(
-      { exportedAt: new Date().toISOString(), progress: getProgress(), profile: getProfile() },
+      {
+        exportedAt: new Date().toISOString(),
+        progress: getProgress(),
+        profile: getProfile(),
+        journal: getJournalEntries(),
+      },
       null,
       2
     );
@@ -98,6 +131,9 @@
     if (parsed.profile && parsed.profile.name) {
       saveProfile(parsed.profile);
     }
+    if (Array.isArray(parsed.journal)) {
+      saveJournalEntries(parsed.journal);
+    }
     return true;
   }
 
@@ -112,5 +148,8 @@
     addTestXp,
     exportData,
     importData,
+    getJournalEntries,
+    addJournalEntry,
+    hasJournalEntryForModule,
   };
 })();

@@ -15,6 +15,17 @@ h1.title{ font-family:'Silkscreen',monospace; font-size:22px; padding:14px 20px 
 .panel{ display:none; padding:0 20px; }
 .panel.active{ display:block; }
 
+.pending-card{
+  background:var(--ink-panel); border:3px solid var(--gold); box-shadow:5px 5px 0 var(--outline);
+  padding:16px; margin-bottom:20px;
+}
+.pending-card .p-label{ font-family:'Press Start 2P',monospace; font-size:8.5px; color:var(--gold); margin-bottom:8px; }
+.pending-card .p-title{ font-family:'Silkscreen',monospace; font-size:14px; margin-bottom:12px; }
+.pending-card .p-btn{
+  display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600;
+  padding:9px 14px; background:var(--gold); border:2px solid var(--outline); color:var(--ink); text-decoration:none;
+}
+
 .empty-state{ display:none; flex-direction:column; align-items:center; text-align:center; padding:36px 12px 20px; }
 .empty-state.show{ display:flex; }
 .empty-frame{
