@@ -1,90 +1,29 @@
 :root{ --bot-body:var(--brand-purple); }
 
 body{
-  min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
   overflow:hidden;
 }
-.stage{ position:relative; width:280px; height:280px; }
 
-.subtitle{
-  font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--paper-dim); letter-spacing:.02em;
-  opacity:0; text-align:center;
+.stage{
+  flex:1; width:100%; display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:scale(.85);
 }
-.subtitle.show{ animation:subFadeIn .5s ease-out forwards; }
-@keyframes subFadeIn{ to{ opacity:1; } }
+.stage.in{ animation:popIn .45s cubic-bezier(.2,1.4,.4,1) forwards; }
+@keyframes popIn{ to{ opacity:1; transform:scale(1); } }
 
-.wordmark-row{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px;
+.companion-head{ width:min(220px, 58vw); height:auto; filter:drop-shadow(4px 4px 0 var(--outline)); }
+.eyes{ transform-box:fill-box; transform-origin:50% 50%; animation:blink 4.2s infinite; }
+@keyframes blink{ 0%,90%,100%{ transform:scaleY(1); } 94%{ transform:scaleY(.15); } }
+
+.wordmark-bottom{
+  display:flex; align-items:center; gap:10px; padding-bottom:64px;
+  opacity:0; transform:translateY(8px);
 }
-.text-part{ opacity:0; }
-.text-part.enter{ animation:fadeIn .4s ease-out forwards; }
-.text-part.exit{ animation:fadeUp .4s ease-in forwards; }
-@keyframes fadeIn{ to{ opacity:1; } }
-@keyframes fadeUp{ from{ opacity:1; transform:translateY(0); } to{ opacity:0; transform:translateY(-12px); } }
+.wordmark-bottom.in{ animation:fadeUp .4s ease-out .25s forwards; }
+@keyframes fadeUp{ to{ opacity:1; transform:translateY(0); } }
 
-.wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:40px; display:flex; }
+.chevron{ width:22px; height:32px; }
+.wordmark{ font-family:'Silkscreen',monospace; font-weight:700; font-size:32px; display:flex; }
 .wm-purple{ color:var(--brand-purple); }
 .wm-cream{ color:var(--paper); }
-
-/* THE ONE mountain shape — same chevron throughout, never swapped for a different shape */
-.chevron{ width:26px; height:36px; opacity:0; transform-origin:center center; }
-.chevron.enter{ animation:chevronIn .4s ease-out forwards; }
-@keyframes chevronIn{ to{ opacity:1; } }
-
-.chevron.travel{ animation: chevronTravel .8s cubic-bezier(.3,.1,.25,1) forwards; }
-@keyframes chevronTravel{ to{ transform: translate(var(--dx), var(--dy)) rotate(-92deg) scale(var(--scale)); } }
-
-.chevron.idle{ animation: chevronIdle 2.4s steps(4) infinite; }
-@keyframes chevronIdle{
-  0%,100%{ transform: translate(var(--dx), var(--dy)) rotate(-92deg) scale(var(--scale)); }
-  50%{ transform: translate(var(--dx), calc(var(--dy) - 4px)) rotate(-92deg) scale(var(--scale)); }
-}
-
-/* flag — small, planted at the measured peak of the landed chevron */
-.flag-group{ position:absolute; opacity:0; transform-origin:bottom center; }
-.flag-group.show{ animation:flagGroupShow .01s forwards; }
-@keyframes flagGroupShow{ to{ opacity:1; } }
-
-.flag-group.idle{ animation:flagGroupIdle 2.4s steps(4) infinite; }
-@keyframes flagGroupIdle{
-  0%,100%{ transform:translateX(-50%) translateY(0); }
-  50%{ transform:translateX(-50%) translateY(-4px); }
-}
-
-.pole{ transform-origin:bottom center; transform:scaleY(0); }
-.pole.grow{ animation:poleGrow .3s steps(4) forwards; }
-@keyframes poleGrow{ to{ transform:scaleY(1); } }
-
-.flag{ transform-origin:left center; transform:scaleX(0); }
-.flag.unfurl{ animation:flagUnfurl .25s steps(3) forwards; }
-@keyframes flagUnfurl{ to{ transform:scaleX(1); } }
-
-/* companion — positioned dynamically via JS, rendered in the user's own color when known */
-.companion{ position:absolute; width:30px; height:30px; opacity:0; }
-.companion.walk-in{ animation: companionWalk 1.7s steps(4) forwards; }
-@keyframes companionWalk{
-  0%{   opacity:1; transform:translate(var(--startX), var(--startY)); }
-  25%{  opacity:1; transform:translate(var(--p1X), var(--p1Y)); }
-  50%{  opacity:1; transform:translate(var(--p2X), var(--p2Y)); }
-  75%{  opacity:1; transform:translate(var(--p3X), var(--p3Y)); }
-  100%{ opacity:1; transform:translate(var(--peakX), var(--peakY)); }
-}
-.companion .arm-l, .companion .arm-r{ transform-box:fill-box; }
-.companion .arm-l{ transform-origin:100% 15%; }
-.companion .arm-r{ transform-origin:0% 15%; }
-.companion.walk-in .arm-l{ animation:armSwingL 0.4s steps(2) infinite; }
-.companion.walk-in .arm-r{ animation:armSwingR 0.4s steps(2) infinite; }
-@keyframes armSwingL{ 0%,100%{ transform:rotate(-15deg); } 50%{ transform:rotate(20deg); } }
-@keyframes armSwingR{ 0%,100%{ transform:rotate(15deg); } 50%{ transform:rotate(-20deg); } }
-
-.companion.victory .arm-l{ animation:none; transform:rotate(-60deg); }
-.companion.victory .arm-r{ animation:none; transform:rotate(60deg); }
-
-.companion.planting .arm-l{ animation:none; transform:rotate(-15deg); }
-.companion.planting .arm-r{ animation:none; transform:rotate(35deg); }
-
-.companion.idle{ animation:companionIdle 2.4s steps(4) infinite; }
-@keyframes companionIdle{
-  0%,100%{ transform:translate(var(--peakX), var(--peakY)); }
-  50%{ transform:translate(var(--peakX), calc(var(--peakY) - 4px)); }
-}
