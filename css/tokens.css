@@ -37,6 +37,7 @@ body{
   letter-spacing:.02em; display:flex; align-items:center; gap:6px;
 }
 .logo .logo-chevron{ width:11px; height:16px; }
+.logo .logo-text{ display:flex; }
 .logo .wm-purple{ color:var(--brand-purple); }
 .logo .wm-cream{ color:var(--paper); }
 
