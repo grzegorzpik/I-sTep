@@ -80,7 +80,7 @@ Oceń, czy rozwiązanie faktycznie wykorzystuje powyższe pojęcia i wskaż, cze
     const beaconDone = state.isLessonDone(mod.beacon.id);
 
     document.documentElement.style.setProperty('--module-accent', mod.accent);
-    document.getElementById('heroIcon').innerHTML = window.IStepIcons.beacon;
+    document.getElementById('heroIcon').innerHTML = window.IStepIcons.beacon(mod);
     document.getElementById('heroEyebrow').textContent = mod.beacon.eyebrowLesson || mod.eyebrow;
     document.getElementById('heroTitle').textContent = mod.beacon.title;
     document.getElementById('goalText').textContent = mod.beacon.goal;

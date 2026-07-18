@@ -33,8 +33,6 @@
     </svg>`;
   }
 
-  const BEACON_ICON = window.IStepIcons.beacon;
-
   function computeStatuses(lessons) {
     let currentAssigned = false;
     return lessons.map((lesson) => {
@@ -52,7 +50,7 @@
     });
   }
 
-  function renderModule(mod, root) {
+  function renderModule(mod, root, moduleUnlocked, prevMod) {
     const profile = state.getProfile();
 
     const section = document.createElement('section');
@@ -60,14 +58,26 @@
     section.style.setProperty('--module-accent', mod.accent);
     section.style.setProperty('--module-accent-dark', mod.accentDark || mod.accent);
 
-    const statuses = computeStatuses(mod.lessons);
+    const rawStatuses = computeStatuses(mod.lessons);
+    // A locked module never gets a "current" node — nothing in it is
+    // playable yet, so nothing should show as the active step (and by
+    // extension, the companion — which only ever renders next to a
+    // "current" node — never shows up ahead of where the learner actually
+    // is). Already-done lessons still show as done.
+    const statuses = moduleUnlocked
+      ? rawStatuses
+      : rawStatuses.map((s) => (s.status === 'current' ? { ...s, status: 'locked' } : s));
     const doneCount = statuses.filter((s) => s.status === 'done').length;
+
+    const subText = moduleUnlocked
+      ? `${doneCount} / ${mod.lessons.length} pojęć ukończone`
+      : `🔒 Odblokuje się po ukończeniu modułu „${prevMod.title}”`;
 
     section.innerHTML = `
       <div class="banner">
         <span class="eyebrow">${mod.eyebrow}</span>
         <h1>${mod.title}</h1>
-        <div class="sub">${doneCount} / ${mod.lessons.length} pojęć ukończone</div>
+        <div class="sub">${subText}</div>
       </div>
       <div class="path-wrap">
         <svg class="trail"></svg>
@@ -115,7 +125,7 @@
 
     if (mod.cwiczenie) {
       const exerciseDone = state.isLessonDone(mod.cwiczenie.id);
-      const exerciseStatus = exerciseDone ? 'done' : allLessonsDone ? 'current' : 'locked';
+      const exerciseStatus = exerciseDone ? 'done' : moduleUnlocked && allLessonsDone ? 'current' : 'locked';
       const exerciseIndex = mod.lessons.length;
 
       const row = document.createElement('div');
@@ -154,7 +164,7 @@
     if (mod.quiz) {
       const quizPrereqDone = mod.cwiczenie ? state.isLessonDone(mod.cwiczenie.id) : allLessonsDone;
       const quizDone = state.isLessonDone(mod.quiz.id);
-      const quizStatus = quizDone ? 'done' : quizPrereqDone ? 'current' : 'locked';
+      const quizStatus = quizDone ? 'done' : moduleUnlocked && quizPrereqDone ? 'current' : 'locked';
       const quizIndex = mod.lessons.length + (mod.cwiczenie ? 1 : 0);
 
       const row = document.createElement('div');
@@ -191,9 +201,8 @@
     }
 
     if (mod.beacon) {
-      const beaconUnlocked = mod.quiz
-        ? state.isLessonDone(mod.quiz.id)
-        : statuses.every((s) => s.status === 'done');
+      const beaconUnlocked =
+        moduleUnlocked && (mod.quiz ? state.isLessonDone(mod.quiz.id) : allLessonsDone);
       const row = document.createElement('div');
       row.className = 'node-row center';
       row.style.minHeight = '150px';
@@ -201,7 +210,7 @@
       const node = document.createElement('div');
       node.className = `node beacon ${beaconDone ? 'done' : beaconUnlocked ? 'current' : 'locked'}`;
       node.setAttribute('data-point', '');
-      node.innerHTML = `<div class="core">${BEACON_ICON}</div><div class="label">${mod.beacon.label}</div>`;
+      node.innerHTML = `<div class="core">${window.IStepIcons.beacon(mod)}</div><div class="label">${mod.beacon.label}</div>`;
 
       if (beaconUnlocked) {
         node.addEventListener('click', () => {
@@ -291,7 +300,12 @@
     document.getElementById('xpValue').textContent = state.getProgress().xp;
 
     const root = document.getElementById('modulesRoot');
-    content.modules.forEach((mod) => renderModule(mod, root));
+    content.modules.forEach((mod, i) => {
+      const prevMod = content.modules[i - 1];
+      const moduleUnlocked =
+        i === 0 || !prevMod.beacon || state.isLessonDone(prevMod.beacon.id);
+      renderModule(mod, root, moduleUnlocked, prevMod);
+    });
     requestAnimationFrame(drawTrail);
 
     document.getElementById('devReset').addEventListener('click', () => {
