@@ -15,9 +15,10 @@
 
   function moduleTotalXp(mod) {
     const lessonsXp = mod.lessons.reduce((sum, l) => sum + (l.xp || 0), 0);
+    const exerciseXp = mod.cwiczenie ? mod.cwiczenie.xp || 0 : 0;
     const quizXp = mod.quiz ? mod.quiz.xp || 0 : 0;
     const beaconXp = mod.beacon ? mod.beacon.xp || 0 : 0;
-    return lessonsXp + quizXp + beaconXp;
+    return lessonsXp + exerciseXp + quizXp + beaconXp;
   }
 
   function renderGuardState(message) {

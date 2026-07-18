@@ -52,23 +52,30 @@
     });
   }
 
-  function renderModule(mod) {
+  function renderModule(mod, root) {
     const profile = state.getProfile();
 
-    document.documentElement.style.setProperty('--module-accent', mod.accent);
-    document.documentElement.style.setProperty('--module-accent-dark', mod.accentDark || mod.accent);
-
-    document.getElementById('greeting').textContent = `Cześć, ${profile.name}!`;
-    document.getElementById('bannerEyebrow').textContent = mod.eyebrow;
-    document.getElementById('bannerTitle').textContent = mod.title;
+    const section = document.createElement('section');
+    section.className = 'module-block';
+    section.style.setProperty('--module-accent', mod.accent);
+    section.style.setProperty('--module-accent-dark', mod.accentDark || mod.accent);
 
     const statuses = computeStatuses(mod.lessons);
     const doneCount = statuses.filter((s) => s.status === 'done').length;
-    document.getElementById('bannerSub').textContent = `${doneCount} / ${mod.lessons.length} pojęć ukończone`;
-    document.getElementById('xpValue').textContent = state.getProgress().xp;
 
-    const nodesEl = document.getElementById('nodes');
-    nodesEl.innerHTML = '';
+    section.innerHTML = `
+      <div class="banner">
+        <span class="eyebrow">${mod.eyebrow}</span>
+        <h1>${mod.title}</h1>
+        <div class="sub">${doneCount} / ${mod.lessons.length} pojęć ukończone</div>
+      </div>
+      <div class="path-wrap">
+        <svg class="trail"></svg>
+        <div class="nodes"></div>
+      </div>
+    `;
+
+    const nodesEl = section.querySelector('.nodes');
 
     statuses.forEach((entry, i) => {
       const row = document.createElement('div');
@@ -104,11 +111,51 @@
       nodesEl.appendChild(row);
     });
 
+    const allLessonsDone = statuses.every((s) => s.status === 'done');
+
+    if (mod.cwiczenie) {
+      const exerciseDone = state.isLessonDone(mod.cwiczenie.id);
+      const exerciseStatus = exerciseDone ? 'done' : allLessonsDone ? 'current' : 'locked';
+      const exerciseIndex = mod.lessons.length;
+
+      const row = document.createElement('div');
+      row.className = `node-row ${ROW_PATTERN[exerciseIndex % ROW_PATTERN.length]}`;
+
+      const node = document.createElement('div');
+      node.className = `node ${exerciseStatus}`;
+      node.setAttribute('data-point', '');
+      node.innerHTML = `<div class="core">✎</div><div class="label">${mod.cwiczenie.label}</div>`;
+
+      const exerciseClickable = (exerciseStatus === 'current' || exerciseStatus === 'done') && !!mod.cwiczenie.steps?.length;
+      if (exerciseClickable) {
+        node.addEventListener('click', () => {
+          const isDone = exerciseStatus === 'done';
+          openLessonModal({
+            eyebrow: mod.eyebrow,
+            title: mod.cwiczenie.title || mod.cwiczenie.label,
+            subtitle: isDone
+              ? 'Ukończone ćwiczenie — możesz je powtórzyć, ale bez dodatkowego XP.'
+              : `Ćwiczenie praktyczne · +${mod.cwiczenie.xp || 20} XP za zaliczenie.`,
+            startLabel: isDone ? 'Przećwicz ponownie' : 'Rozpocznij',
+            href: `cwiczenie.html?module=${encodeURIComponent(mod.id)}`,
+          });
+        });
+      } else {
+        node.style.cursor = 'default';
+      }
+
+      row.appendChild(node);
+      if (exerciseStatus === 'current') {
+        row.insertAdjacentHTML('beforeend', mascotSvg(profile.color));
+      }
+      nodesEl.appendChild(row);
+    }
+
     if (mod.quiz) {
-      const allLessonsDone = statuses.every((s) => s.status === 'done');
+      const quizPrereqDone = mod.cwiczenie ? state.isLessonDone(mod.cwiczenie.id) : allLessonsDone;
       const quizDone = state.isLessonDone(mod.quiz.id);
-      const quizStatus = quizDone ? 'done' : allLessonsDone ? 'current' : 'locked';
-      const quizIndex = mod.lessons.length;
+      const quizStatus = quizDone ? 'done' : quizPrereqDone ? 'current' : 'locked';
+      const quizIndex = mod.lessons.length + (mod.cwiczenie ? 1 : 0);
 
       const row = document.createElement('div');
       row.className = `node-row ${ROW_PATTERN[quizIndex % ROW_PATTERN.length]}`;
@@ -176,42 +223,44 @@
       nodesEl.appendChild(row);
     }
 
-    requestAnimationFrame(drawTrail);
+    root.appendChild(section);
   }
 
   function drawTrail() {
-    const wrap = document.getElementById('pathWrap');
-    const svg = document.getElementById('trailSvg');
-    const points = Array.from(document.querySelectorAll('[data-point] .core'));
-    if (!points.length) return;
+    document.querySelectorAll('.module-block').forEach((block) => {
+      const wrap = block.querySelector('.path-wrap');
+      const svg = block.querySelector('.trail');
+      const points = Array.from(block.querySelectorAll('[data-point] .core'));
+      if (!points.length) return;
 
-    const wrapRect = wrap.getBoundingClientRect();
-    svg.setAttribute('width', wrapRect.width);
-    svg.setAttribute('height', wrapRect.height);
-    svg.setAttribute('viewBox', `0 0 ${wrapRect.width} ${wrapRect.height}`);
+      const wrapRect = wrap.getBoundingClientRect();
+      svg.setAttribute('width', wrapRect.width);
+      svg.setAttribute('height', wrapRect.height);
+      svg.setAttribute('viewBox', `0 0 ${wrapRect.width} ${wrapRect.height}`);
 
-    const coords = points.map((el) => {
-      const r = el.getBoundingClientRect();
-      return { x: r.left + r.width / 2 - wrapRect.left, y: r.top + r.height / 2 - wrapRect.top };
+      const coords = points.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left + r.width / 2 - wrapRect.left, y: r.top + r.height / 2 - wrapRect.top };
+      });
+
+      function buildPath(pts) {
+        if (pts.length < 2) return '';
+        return 'M ' + pts.map((p) => `${p.x} ${p.y}`).join(' L ');
+      }
+
+      let walkedEndIndex = 0;
+      block.querySelectorAll('[data-point]').forEach((node, i) => {
+        if (node.classList.contains('done') || node.classList.contains('current')) walkedEndIndex = i;
+      });
+
+      const walkedPts = coords.slice(0, walkedEndIndex + 1);
+      const remainingPts = coords.slice(walkedEndIndex);
+
+      svg.innerHTML = `
+        <path class="remaining" d="${buildPath(remainingPts)}"></path>
+        <path class="walked" d="${buildPath(walkedPts)}"></path>
+      `;
     });
-
-    function buildPath(pts) {
-      if (pts.length < 2) return '';
-      return 'M ' + pts.map((p) => `${p.x} ${p.y}`).join(' L ');
-    }
-
-    let walkedEndIndex = 0;
-    document.querySelectorAll('[data-point]').forEach((node, i) => {
-      if (node.classList.contains('done') || node.classList.contains('current')) walkedEndIndex = i;
-    });
-
-    const walkedPts = coords.slice(0, walkedEndIndex + 1);
-    const remainingPts = coords.slice(walkedEndIndex);
-
-    svg.innerHTML = `
-      <path class="remaining" d="${buildPath(remainingPts)}"></path>
-      <path class="walked" d="${buildPath(walkedPts)}"></path>
-    `;
   }
 
   function openLessonModal({ eyebrow, title, subtitle, startLabel, href }) {
@@ -237,7 +286,13 @@
   window.addEventListener('resize', () => requestAnimationFrame(drawTrail));
 
   document.addEventListener('DOMContentLoaded', () => {
-    renderModule(content.modules[0]);
+    const profile = state.getProfile();
+    document.getElementById('greeting').textContent = `Cześć, ${profile.name}!`;
+    document.getElementById('xpValue').textContent = state.getProgress().xp;
+
+    const root = document.getElementById('modulesRoot');
+    content.modules.forEach((mod) => renderModule(mod, root));
+    requestAnimationFrame(drawTrail);
 
     document.getElementById('devReset').addEventListener('click', () => {
       if (confirm('Zresetować całą apkę — postęp i kompana (test)?')) {
