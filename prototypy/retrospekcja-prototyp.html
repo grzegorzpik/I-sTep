@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Szlak — Retrospekcja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Press+Start+2P&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1622; --ink-panel:#241D2C; --paper:#F3E9D6; --paper-dim:#9C90A6;
+    --outline:#0C0910; --module-accent:#4E8FC4; --gold:#E3A83F; --path-idle:#3A3145; --success:#6FA860;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ background:var(--ink); color:var(--paper); font-family:'Inter',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased; }
+  .app{ max-width:480px; margin:0 auto; min-height:100vh; padding-bottom:110px; }
+
+  .topbar{ display:flex; align-items:center; gap:10px; padding:20px 20px 6px; }
+  .back{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--paper-dim); display:flex; align-items:center; gap:6px; }
+  .back svg{ width:14px; height:14px; }
+
+  .eyebrow{ padding:16px 20px 4px; font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--module-accent); letter-spacing:.06em; }
+  h1{ padding:0 20px 6px; font-family:'Silkscreen',monospace; font-size:22px; }
+  .intro{ padding:0 20px 20px; font-size:12.5px; color:var(--paper-dim); line-height:1.55; }
+
+  .field{ padding:0 20px; margin-bottom:20px; }
+  .field label{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Silkscreen',monospace; font-size:13.5px; margin-bottom:8px; color:var(--paper);
+  }
+  .req-tag{
+    font-family:'JetBrains Mono',monospace; font-size:8.5px; font-weight:600; letter-spacing:.04em;
+    color:var(--ink); background:var(--gold); padding:2px 6px; border:1.5px solid var(--outline);
+  }
+  .opt-tag{
+    font-family:'JetBrains Mono',monospace; font-size:8.5px; font-weight:600; letter-spacing:.04em;
+    color:var(--paper-dim); background:transparent; padding:2px 6px; border:1.5px solid var(--path-idle);
+  }
+  .field .hint{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--paper-dim); margin-bottom:8px; }
+  textarea{
+    width:100%; background:var(--ink-panel); border:3px solid var(--path-idle); color:var(--paper);
+    font-family:'Inter',sans-serif; font-size:13.5px; padding:12px; resize:none; min-height:64px; outline:none;
+  }
+  textarea:focus{ border-color:var(--module-accent); }
+  textarea::placeholder{ color:#5c5468; }
+
+  .rating-card{
+    margin:0 20px 20px; padding:18px; background:var(--ink-panel); border:3px solid var(--outline);
+    box-shadow:5px 5px 0 var(--outline);
+  }
+  .rating-card label{ display:flex; align-items:center; gap:8px; font-family:'Silkscreen',monospace; font-size:14px; margin-bottom:4px; }
+  .rating-card .hint{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--paper-dim); margin-bottom:14px; }
+  .blocks-input{ display:flex; gap:6px; margin-bottom:10px; }
+  .rblock{
+    flex:1; height:34px; border:3px solid var(--outline); background:var(--ink); cursor:pointer;
+  }
+  .rblock.on{ background:var(--gold); }
+  .rblock:active{ transform:translateY(1px); }
+  .rating-labels{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--paper-dim); }
+
+  .footer{
+    position:fixed; bottom:0; left:0; right:0; z-index:5; background:var(--ink-panel);
+    border-top:3px solid var(--outline); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  }
+  .footer-inner{ max-width:480px; margin:0 auto; }
+  .btn-primary{
+    width:100%; font-family:'Silkscreen',monospace; font-weight:700; font-size:15px; padding:14px;
+    background:var(--path-idle); border:3px solid var(--outline); color:var(--paper-dim); cursor:not-allowed;
+  }
+  .btn-primary.ready{ background:var(--gold); color:var(--ink); cursor:pointer; box-shadow:4px 4px 0 var(--outline); }
+  .btn-primary.ready:active{ transform:translate(2px,2px); box-shadow:2px 2px 0 var(--outline); }
+  .btn-primary.saved{ background:var(--success); color:var(--ink); cursor:default; }
+
+  .saved-toast{
+    position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-20px);
+    z-index:20; background:var(--success); border:3px solid var(--outline); box-shadow:4px 4px 0 var(--outline);
+    padding:10px 16px; font-family:'JetBrains Mono',monospace; font-weight:600; font-size:12px; color:var(--ink);
+    opacity:0; transition:opacity .25s ease, transform .25s ease;
+  }
+  .saved-toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      MAPA
+    </div>
+  </div>
+
+  <div class="eyebrow">MODUŁ 0 · RETROSPEKCJA</div>
+  <h1>Zanim pójdziesz dalej</h1>
+  <div class="intro">Kilka pytań na gorąco — to trafi do Twojego dziennika. Nie musisz odpowiadać na wszystko wyczerpująco, liczy się szczerość, nie długość.</div>
+
+  <div class="field">
+    <label>Czego się nauczyłem? <span class="req-tag">WYMAGANE</span></label>
+    <textarea placeholder="Jedno zdanie wystarczy..." data-req="1"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Co nadal jest dla mnie niejasne? <span class="opt-tag">opcjonalne</span></label>
+    <textarea placeholder="Bez tego nie ma prawdziwej retrospekcji"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Jak wykorzystałem to w swojej aplikacji? <span class="opt-tag">opcjonalne</span></label>
+    <textarea placeholder="Konkretna zmiana, nie teoria"></textarea>
+  </div>
+
+  <div class="field">
+    <label>Jaki trik wizualny/animacyjny dodałem? <span class="opt-tag">opcjonalne</span></label>
+    <textarea placeholder="Nawet drobiazg się liczy"></textarea>
+  </div>
+
+  <div class="rating-card">
+    <label>Jak oceniam przydatność tego modułu? <span class="req-tag">WYMAGANE</span></label>
+    <div class="hint">1 = niewiele mi dał · 5 = bardzo przydatny</div>
+    <div class="blocks-input" id="blocksInput">
+      <div class="rblock" data-val="1"></div>
+      <div class="rblock" data-val="2"></div>
+      <div class="rblock" data-val="3"></div>
+      <div class="rblock" data-val="4"></div>
+      <div class="rblock" data-val="5"></div>
+    </div>
+    <div class="rating-labels"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+  </div>
+</div>
+
+<div class="saved-toast" id="savedToast">Wpis zapisany w dzienniku</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <button class="btn-primary" id="saveBtn" disabled>Uzupełnij wymagane pole</button>
+  </div>
+</div>
+
+<script>
+let currentRating = 0;
+
+document.querySelectorAll('.rblock').forEach(block => {
+  block.addEventListener('click', () => {
+    currentRating = parseInt(block.dataset.val);
+    document.querySelectorAll('.rblock').forEach(b => {
+      b.classList.toggle('on', parseInt(b.dataset.val) <= currentRating);
+    });
+    checkReady();
+  });
+});
+
+const requiredField = document.querySelector('textarea[data-req="1"]');
+const saveBtn = document.getElementById('saveBtn');
+
+function checkReady(){
+  const hasRequired = requiredField.value.trim().length > 0;
+  const hasRating = currentRating > 0;
+
+  if(hasRequired && hasRating){
+    saveBtn.disabled = false;
+    saveBtn.classList.add('ready');
+    saveBtn.textContent = 'Zapisz w dzienniku';
+  } else {
+    saveBtn.disabled = true;
+    saveBtn.classList.remove('ready');
+    saveBtn.textContent = !hasRequired ? 'Uzupełnij wymagane pole' : 'Oceń przydatność modułu';
+  }
+}
+
+requiredField.addEventListener('input', checkReady);
+
+saveBtn.addEventListener('click', function(){
+  if(!this.classList.contains('ready')) return;
+  this.classList.remove('ready');
+  this.classList.add('saved');
+  this.textContent = 'Zapisano';
+
+  const toast = document.getElementById('savedToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1800);
+});
+</script>
+</body>
+</html>
