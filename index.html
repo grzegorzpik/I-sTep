@@ -1281,7 +1281,9 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
       <svg viewBox="0 0 24 24" fill="none" width="22" height="22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12H7M7 12L13 6M7 12L13 18"/></svg>
     </button>
   </div>
-  <button class="pin-forgot" id="pin-forgot" onclick="openPinForgot()">Nie pamiętam PIN-u</button>
+  <!-- hidden until boot decides between unlock and first-run setup, so a tap
+       in that window can't reach the data-wiping path -->
+  <button class="pin-forgot" id="pin-forgot" style="display:none;" onclick="openPinForgot()">Nie pamiętam PIN-u</button>
   </div>
 </div>
 
