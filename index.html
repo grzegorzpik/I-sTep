@@ -345,8 +345,22 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .life-bar.over{background:var(--neon-red);width:100%!important;}
 
 /* Overflow badge */
-.overflow-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
-  padding:2px 8px;border-radius:20px;background:rgba(255,107,91,.1);color:var(--neon-red);margin-top:6px;}
+.overflow-badge{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;
+  padding:4px 4px 4px 10px;border-radius:20px;background:rgba(255,107,91,.1);
+  color:var(--neon-red);margin-top:6px;}
+.overflow-fix-btn{flex-shrink:0;border:none;cursor:pointer;font:inherit;font-size:10px;
+  font-weight:800;letter-spacing:.3px;padding:4px 12px;border-radius:20px;
+  background:var(--neon-red);color:#fff;transition:opacity .15s,transform .1s;}
+.overflow-fix-btn:active{transform:scale(.94);opacity:.85;}
+.catd-patch-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  padding:12px 14px;margin-bottom:20px;border-radius:12px;border:1px solid rgba(255,107,91,.3);
+  background:rgba(255,107,91,.1);color:var(--neon-red);font:inherit;font-size:13px;
+  font-weight:700;cursor:pointer;transition:opacity .15s,transform .1s;}
+.catd-patch-btn:active{transform:scale(.98);opacity:.8;}
+.patch-auto-btn{width:100%;padding:11px;margin-bottom:14px;border-radius:12px;
+  border:1px dashed rgba(108,92,231,.4);background:rgba(108,92,231,.07);
+  color:var(--neon-violet);font:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+.patch-auto-btn:active{background:rgba(108,92,231,.16);}
 
 /* ══ PATCH MODAL (Elastyczne Łatanie) ══════════════════════════ */
 .patch-desc{font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;
@@ -2170,13 +2184,14 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
       </div>
 
       <!-- Action buttons -->
-      <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button class="catd-btn catd-btn-add" onclick="catdAddCost()">
           <span>＋</span> Dodaj koszt
         </button>
         <button class="catd-btn catd-btn-edit" id="catd-btn-edit" onclick="catdEdit()">Edytuj</button>
         <button class="catd-btn catd-btn-del" id="catd-btn-del" onclick="catdDelete()"></button>
       </div>
+      <button class="catd-patch-btn" id="catd-btn-patch" onclick="catdPatch()" style="display:none;"></button>
 
       <!-- Expense history -->
       <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Historia wydatków</div>
@@ -2824,6 +2839,33 @@ function getNextCycleStart(now){
   if(nm>11){ nm=0; ny+=1; }
   return new Date(ny,nm,getCycleDay());
 }
+// [start, end) calendar window of the cycle identified by a 'YYYY-M' id.
+function getCycleWindow(cycleId){
+  const [y,m]=String(cycleId).split('-').map(Number);
+  const day=getCycleDay();
+  const start=new Date(y,m-1,day);
+  let ny=y, nm=m; // m is 1-indexed, so m as 0-indexed month is the NEXT month
+  if(nm>11){ nm=0; ny+=1; }
+  return {start, end:new Date(ny,nm,day)};
+}
+// Per-category spend of one cycle, read straight from the expense ledger.
+// `cat.spent` is only ever a view of the CURRENT cycle (recalcCatSpent wipes
+// anything older), so closing a month must never read it — by the time the
+// close prompt runs, the numbers it wants have already been zeroed.
+function getCycleSpendByCat(cycleId){
+  const {start,end}=getCycleWindow(cycleId);
+  const sums={};
+  loadExpenses().forEach(e=>{
+    const t=new Date(e.ts);
+    if(t<start||t>=end) return;
+    sums[e.catId]=parseFloat(((sums[e.catId]||0)+(e.amount||0)).toFixed(2));
+  });
+  return sums;
+}
+function getCycleSpendTotal(cycleId){
+  const sums=getCycleSpendByCat(cycleId);
+  return parseFloat(Object.values(sums).reduce((s,v)=>s+v,0).toFixed(2));
+}
 function checkMonthlyReset(){
   const now=new Date();
   const currentMonth=getCurrentCycleId(now);
@@ -2834,10 +2876,12 @@ function checkMonthlyReset(){
     return;
   }
   if(lastMonth===currentMonth) return;
-  // New month detected — check if there's anything to reset
-  const totalSpent=cats.reduce((s,c)=>s+c.spent,0);
+  // New month detected. Read the CLOSING cycle's spend from the expense
+  // ledger — cats[].spent has already been rebased onto the new cycle by
+  // recalcCatSpent() during the first renderBudget(), so it is always 0 here.
+  const totalSpent=getCycleSpendTotal(lastMonth);
   if(totalSpent===0){
-    // Nothing spent, just update month silently
+    // Genuinely nothing spent last cycle — close it silently.
     _cSet('salvage_last_month', currentMonth);
     return;
   }
@@ -2870,12 +2914,12 @@ function showMonthClosePrompt(lastMonth, currentMonth, totalSpent){
         ${saved>0?`· Zaoszczędzono <strong style="color:var(--neon-emerald)">${fmt(saved)} zł</strong>`:''}
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button onclick="doMonthClose(true,'${currentMonth}')" style="
+        <button onclick="doMonthClose(true,'${currentMonth}','${lastMonth}')" style="
           width:100%;padding:15px;border-radius:14px;border:none;
           background:var(--neon-violet);color:#fff;font-size:15px;font-weight:700;cursor:pointer;">
           🏆 Zamknij miesiąc i zeruj wydatki
         </button>
-        <button onclick="doMonthClose(false,'${currentMonth}')" style="
+        <button onclick="doMonthClose(false,'${currentMonth}','${lastMonth}')" style="
           width:100%;padding:15px;border-radius:14px;border:none;
           background:rgba(20,19,31,.07);color:var(--text-secondary);font-size:14px;font-weight:600;cursor:pointer;">
           Przypomnij mi później
@@ -2885,17 +2929,24 @@ function showMonthClosePrompt(lastMonth, currentMonth, totalSpent){
   document.body.appendChild(overlay);
 }
 
-function doMonthClose(doReset, currentMonth){
+function doMonthClose(doReset, currentMonth, closingMonth){
   const overlay=document.getElementById('month-close-overlay');
   if(overlay) overlay.remove();
   if(doReset){
-    // Save summary before reset
+    // Save summary before reset. Everything below describes the CLOSING
+    // cycle, so it all comes from the ledger — cats[].spent already refers
+    // to the new cycle and would report a clean, empty month every time.
     const income=loadIncome();
-    const totalSpent=cats.reduce((s,c)=>s+c.spent,0);
+    const spendByCat=getCycleSpendByCat(closingMonth);
+    const totalSpent=parseFloat(Object.values(spendByCat).reduce((s,v)=>s+v,0).toFixed(2));
     const saved=Math.max(parseFloat((income-totalSpent).toFixed(2)),0);
     // Was every category within its limit for the month that's ending?
-    const wasClean = cats.length>0 && !cats.some(c=>c.limit>0&&c.spent>c.limit);
-    _cSet('salvage_clean_month_just_closed', wasClean);
+    const wasClean = cats.length>0 && !cats.some(c=>c.limit>0&&(spendByCat[c.id]||0)>c.limit);
+    // Sticky: one clean month is enough to earn the badge forever, so never
+    // overwrite a previous `true` with a later messy month.
+    if(wasClean || !_cGet('salvage_clean_month_just_closed',false)){
+      _cSet('salvage_clean_month_just_closed', wasClean);
+    }
     // Record month in XP log
     addXP('month_close','Auto-zamknięcie miesiąca (wydano: '+fmt(totalSpent)+' zł, zaoszczędzono: '+fmt(saved)+' zł)');
     // Remember this month's total so next month can show an honest trend
@@ -2911,7 +2962,7 @@ function doMonthClose(doReset, currentMonth){
     const hasGoals=loadGoals().some(g=>(g.saved||0)<(g.target||0));
     if(saved>0&&hasGoals){
       setTimeout(()=>{
-        openTriumphModal();
+        openTriumphModal(saved,'month_close');
         showToast('✓ Miesiąc zamknięty! Rozdaj oszczędności na cele.');
       },400);
     } else {
@@ -3002,6 +3053,7 @@ function openModal(id){
 }
 function closeModal(id){
   const overlay=document.getElementById(id);
+  if(!overlay) return; // closing a modal that isn't in the DOM is a no-op, not a crash
   overlay.classList.remove('open');
   // Reset any manual transform after the CSS close transition finishes
   const sheet=overlay.querySelector('.modal-sheet');
@@ -3021,15 +3073,29 @@ function checkWeeklyGreenZone(){
   const last=parseInt(_cGet('salvage_last_green',0)||0);
   const now=Date.now();
   const WEEK=7*24*60*60*1000;
-  if(now-last<WEEK) return;
   if(!cats.length) return; // no categories set up yet — nothing to be "green" about
-  const allGreen=cats.every(c=>c.limit>0&&c.spent/c.limit<0.6);
+  if(!last){
+    // No clock on record yet (pre-onboarding data, or a restored backup).
+    // Start it now — otherwise the first check ever run would award a week
+    // the user hasn't lived through.
+    _cSet('salvage_last_green',now);
+    return;
+  }
+  if(now-last<WEEK) return;
+  // Categories with no limit set aren't budgeted, so they can neither be green
+  // nor block the streak; only ignore them if at least one real limit exists.
+  const budgeted=cats.filter(c=>c.limit>0);
+  if(!budgeted.length) return;
+  const allGreen=budgeted.every(c=>c.spent/c.limit<0.6);
   if(allGreen){
     _cSet('salvage_last_green',now);
     const wc=parseInt(_cGet('salvage_green_weeks',0)||0);
     _cSet('salvage_green_weeks',wc+1);
     addXP('budget_green');
     showToast('🟢 +150 XP — budżet w zielonej strefie przez tydzień!');
+    // Streak badges key off this counter, so check them here rather than
+    // waiting for the user to happen to open Profil.
+    evaluateBadges();
   }
 }
 
@@ -3279,11 +3345,29 @@ function buildCatCard(cat){
     <div class="life-bar-wrap">
       <div class="life-bar ${over?'over':barClass}" style="width:${(pct*100).toFixed(1)}%"></div>
     </div>
-    ${over?`<div class="overflow-badge">${icon('alert',11)} Przekroczono o ${fmt(cat.spent-cat.limit)} zł — dotknij ikony po historię</div>`:''}
+    ${over?`<div class="overflow-badge">
+      <span style="display:flex;align-items:center;gap:5px;flex:1;min-width:0;">
+        ${icon('alert',11)} Przekroczono o ${fmt(cat.spent-cat.limit)} zł
+      </span>
+      <button type="button" class="overflow-fix-btn" data-patch-cat="${cat.id}">Wyrównaj</button>
+    </div>`:''}
   `;
 
-  // Icon tap → otwiera panel szczegółów kategorii
+  // "Wyrównaj" tap → opens the patch modal for this category. Without this
+  // the modal was only ever reachable from the 600 ms auto-popup after adding
+  // a cost, so any overspend you dismissed (or that came from lowering a
+  // limit) could never be balanced again.
   setTimeout(()=>{
+    const fixEl=card.querySelector(`[data-patch-cat="${cat.id}"]`);
+    if(fixEl){
+      fixEl.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        if(!isDragging&&!didLongPress) openPatchModal(cat.id);
+      });
+      // keep the long-press drag from starting on the button itself
+      ['touchstart','mousedown'].forEach(ev=>
+        fixEl.addEventListener(ev,(e)=>{ e.stopPropagation(); clearTimeout(pressTimer); }));
+    }
     const iconEl=card.querySelector(`[data-cat-icon="${cat.id}"]`);
     if(iconEl){
       iconEl.style.cursor='pointer';
@@ -3414,6 +3498,14 @@ function renderCatDetail(){
   document.getElementById('catd-pct-lbl').textContent=(pct*100).toFixed(0)+'%';
   document.getElementById('catd-pct-lbl').style.color=barColor;
 
+  // Balance action — only meaningful while the category is actually over.
+  const patchBtn=document.getElementById('catd-btn-patch');
+  if(patchBtn){
+    patchBtn.style.display=over?'flex':'none';
+    if(over) patchBtn.innerHTML=icon('alert',14)+
+      ' Wyrównaj budżet — brakuje '+fmt(cat.spent-cat.limit)+' zł';
+  }
+
   // History
   const expenses=loadExpenses().filter(e=>e.catId===catdCatId)
     .sort((a,b)=>new Date(b.ts)-new Date(a.ts));
@@ -3452,6 +3544,12 @@ function catdExpandHistory(){
 function catdAddCost(){
   closeModal('modal-cat-detail');
   setTimeout(()=>openKosztModal(catdCatId),320);
+}
+
+function catdPatch(){
+  const id=catdCatId;
+  closeModal('modal-cat-detail');
+  setTimeout(()=>openPatchModal(id),320);
 }
 
 function catdEdit(){
@@ -3610,20 +3708,37 @@ function submitCost(){
 ════════════════════════════════════════════════════════════════ */
 function openPatchModal(overCatId){
   const overCat=cats.find(c=>c.id===overCatId);
+  if(!overCat){ showToast('Nie znaleziono kategorii.'); return; }
   const deficit=parseFloat((overCat.spent-overCat.limit).toFixed(2));
-  /* donor cats: those with remaining budget */
-  const donors=cats.filter(c=>c.id!==overCatId&&c.limit>c.spent);
   const body=document.getElementById('patch-body');
-  if(!donors.length){
+  if(deficit<=0){
     body.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--text-muted)">
-      <div style="width:48px;height:48px;border-radius:14px;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">${icon('alert',22)}</div>
-      Żadna kategoria nie ma wolnych środków do pożyczenia.
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">${icon('check',22)}</div>
+      <strong>${overCat.emoji} ${overCat.name}</strong> mieści się już w limicie.
     </div>`;
     openModal('modal-patch'); return;
   }
-  /* build UI */
+  /* donor cats: those with remaining budget. A donor is only useful if it has
+     at least a grosz to spare, so filter on the rounded figure the slider
+     actually offers — otherwise 0.004 zł of headroom shows up as a dead row. */
+  const donors=cats.filter(c=>c.id!==overCatId&&parseFloat((c.limit-c.spent).toFixed(2))>=0.01);
+  const totalAvail=parseFloat(donors.reduce((sum,d)=>sum+(d.limit-d.spent),0).toFixed(2));
+  if(!donors.length){
+    body.innerHTML=`<div style="text-align:center;padding:32px 0;color:var(--text-muted)">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--bg-card2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">${icon('alert',22)}</div>
+      Żadna kategoria nie ma wolnych środków do pożyczenia.<br>
+      <span style="font-size:12px">Podnieś limit tej kategorii albo obniż inny w „Edytuj".</span>
+    </div>`;
+    openModal('modal-patch'); return;
+  }
+  /* build UI. step=0.01 because deficits are almost never round numbers —
+     with the old step=1 a 47.49 zł overspend could only ever be patched by
+     47 zł and the category stayed red no matter what the user did. */
   let slidersHtml=donors.map(d=>{
     const avail=parseFloat((d.limit-d.spent).toFixed(2));
+    // No single donor may be dragged past the deficit — moving more than that
+    // just shreds a healthy category's limit for nothing.
+    const cap=Math.min(avail,deficit);
     return `<div class="patch-src-row" id="prow-${d.id}">
       <div class="patch-src-icon">${d.emoji}</div>
       <div class="patch-src-info">
@@ -3632,19 +3747,26 @@ function openPatchModal(overCatId){
       </div>
       <div class="patch-slider-wrap">
         <input type="range" class="patch-slider" id="pslider-${d.id}"
-          min="0" max="${avail}" step="1" value="0"
-          data-src="${d.id}" data-deficit="${deficit}"
+          min="0" max="${cap}" step="0.01" value="0"
+          data-src="${d.id}" data-deficit="${deficit}" data-avail="${avail}"
           oninput="onPatchSlider(this)">
         <div class="patch-slider-val" id="pval-${d.id}">0 zł</div>
       </div>
     </div>`;
   }).join('');
+  const shortfall=parseFloat((deficit-totalAvail).toFixed(2));
   body.innerHTML=`
     <div class="patch-desc">
       Kategoria <strong>${overCat.emoji} ${overCat.name}</strong> jest przekroczona
       o <strong>${fmt(deficit)} zł</strong>. Możesz podkraść wolne środki z innych kategorii.
       Ogólny budżet pozostaje bez zmian.
+      ${shortfall>0?`<br><span style="color:var(--neon-red);font-weight:700">
+        Uwaga: w innych kategoriach jest tylko ${fmt(totalAvail)} zł — zabraknie ${fmt(shortfall)} zł.
+      </span>`:''}
     </div>
+    <button class="patch-auto-btn" onclick="autoPatch('${overCatId}',${deficit})">
+      ⚡ Wyrównaj automatycznie (${fmt(Math.min(deficit,totalAvail))} zł)
+    </button>
     <div class="patch-source-list">${slidersHtml}</div>
     <div class="patch-total">
       <div class="patch-total-label">Łącznie przesunięto</div>
@@ -3654,36 +3776,91 @@ function openPatchModal(overCatId){
   `;
   openModal('modal-patch');
 }
-function onPatchSlider(slider){
-  /* recalculate total moved */
+
+/* Sum of every slider, rounded once so repeated float additions can't drift. */
+function patchTotal(){
   let total=0;
-  document.querySelectorAll('.patch-slider').forEach(s=>{ total+=parseFloat(s.value); });
-  total=parseFloat(total.toFixed(2));
-  const deficit=parseFloat(slider.dataset.deficit);
-  document.getElementById('patch-sum').textContent=fmt(total)+' / '+fmt(deficit)+' zł';
-  document.getElementById('patch-sum').style.color=total>=deficit?'var(--neon-emerald)':'var(--text-primary)';
-  document.getElementById('pval-'+slider.dataset.src).textContent=fmt(parseFloat(slider.value))+' zł';
+  document.querySelectorAll('.patch-slider').forEach(s=>{ total+=parseFloat(s.value)||0; });
+  return parseFloat(total.toFixed(2));
 }
+
+function refreshPatchSummary(deficit){
+  const total=patchTotal();
+  const sumEl=document.getElementById('patch-sum');
+  if(sumEl){
+    sumEl.textContent=fmt(total)+' / '+fmt(deficit)+' zł';
+    sumEl.style.color=total>=deficit?'var(--neon-emerald)':'var(--text-primary)';
+  }
+  document.querySelectorAll('.patch-slider').forEach(s=>{
+    const lbl=document.getElementById('pval-'+s.dataset.src);
+    if(lbl) lbl.textContent=fmt(parseFloat(s.value)||0)+' zł';
+  });
+  return total;
+}
+
+function onPatchSlider(slider){
+  const deficit=parseFloat(slider.dataset.deficit);
+  /* Clamp the slider being dragged so the running total never exceeds the
+     deficit. Without this the user could move thousands of złoty to cover a
+     50-grosz overspend and silently zero out a healthy category's limit. */
+  let others=0;
+  document.querySelectorAll('.patch-slider').forEach(s=>{
+    if(s!==slider) others+=parseFloat(s.value)||0;
+  });
+  const room=parseFloat(Math.max(deficit-others,0).toFixed(2));
+  if((parseFloat(slider.value)||0)>room) slider.value=room;
+  refreshPatchSummary(deficit);
+}
+
+/* Fills the deficit greedily from the donors with the most headroom first,
+   so one tap balances the category exactly — including the grosze. */
+function autoPatch(overCatId,deficit){
+  const sliders=[...document.querySelectorAll('.patch-slider')]
+    .sort((a,b)=>parseFloat(b.dataset.avail)-parseFloat(a.dataset.avail));
+  let remaining=deficit;
+  sliders.forEach(s=>{
+    const cap=parseFloat(s.max);
+    const take=parseFloat(Math.min(cap,Math.max(remaining,0)).toFixed(2));
+    s.value=take;
+    remaining=parseFloat((remaining-take).toFixed(2));
+  });
+  const total=refreshPatchSummary(deficit);
+  if(remaining>0) showToast('Wolne środki pokryją tylko '+fmt(total)+' z '+fmt(deficit)+' zł');
+}
+
 function applyPatch(overCatId,deficit){
-  let total=0;
+  const overCat=cats.find(c=>c.id===overCatId);
+  if(!overCat){ showToast('Nie znaleziono kategorii.'); return; }
   const moves=[];
   document.querySelectorAll('.patch-slider').forEach(s=>{
-    const v=parseFloat(s.value);
-    if(v>0){ total+=v; moves.push({srcId:s.dataset.src,amount:v}); }
+    const v=parseFloat(parseFloat(s.value||0).toFixed(2));
+    if(v>0) moves.push({srcId:s.dataset.src,amount:v});
   });
-  total=parseFloat(total.toFixed(2));
+  let total=parseFloat(moves.reduce((sum,m)=>sum+m.amount,0).toFixed(2));
   if(total<=0){ showToast('Przesuń suwak, żeby coś przesunąć 😅'); return; }
-  /* apply: reduce donor limits, reduce over-cat spent by moved amount */
-  const overCat=cats.find(c=>c.id===overCatId);
+  /* Hard cap: never move more than the deficit, whatever the sliders say. */
+  if(total>deficit){
+    let budget=deficit;
+    moves.forEach(m=>{
+      m.amount=parseFloat(Math.min(m.amount,Math.max(budget,0)).toFixed(2));
+      budget=parseFloat((budget-m.amount).toFixed(2));
+    });
+    total=deficit;
+  }
+  /* apply: reduce donor limits, raise the over-cat limit by the same amount */
   moves.forEach(m=>{
     const src=cats.find(c=>c.id===m.srcId);
-    src.limit=parseFloat((src.limit-m.amount).toFixed(2));
+    if(src) src.limit=parseFloat((src.limit-m.amount).toFixed(2));
   });
   overCat.limit=parseFloat((overCat.limit+total).toFixed(2));
   saveCats(cats);
   closeModal('modal-patch');
   renderBudget();
-  showToast('✓ Przesunięto '+fmt(total)+' zł — bilans wyrównany!');
+  renderStart();
+  const left=parseFloat((overCat.spent-overCat.limit).toFixed(2));
+  showToast(left>0.009
+    ? '✓ Przesunięto '+fmt(total)+' zł — zostało jeszcze '+fmt(left)+' zł'
+    : '✓ Przesunięto '+fmt(total)+' zł — bilans wyrównany!');
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -6496,7 +6673,12 @@ function renderProfil(){
     if(countEl) countEl.innerHTML=`${unlockedCount}<span style="font-size:22px;color:var(--text-muted);font-weight:700;"> / ${BADGES.length}</span>`;
     const gridEl=document.getElementById('badge-grid');
     if(gridEl){
-      const visibleBadges = badgesExpanded ? BADGES : BADGES.slice(0, BADGE_MAX_VISIBLE);
+      // Unlocked badges always come first in the collapsed view, so what the
+      // "N / 15" counter promises is what the user actually sees. Declaration
+      // order is preserved inside each group.
+      const ordered = badgesExpanded ? BADGES
+        : [...BADGES.filter(b=>unlockedMap[b.id]), ...BADGES.filter(b=>!unlockedMap[b.id])];
+      const visibleBadges = badgesExpanded ? ordered : ordered.slice(0, BADGE_MAX_VISIBLE);
       const tiles=visibleBadges.map(b=>{
         const isUnlocked=!!unlockedMap[b.id];
         const dateLabel=isUnlocked?new Date(unlockedMap[b.id]).toLocaleDateString('pl-PL',{day:'numeric',month:'short'}):'';
@@ -6508,7 +6690,7 @@ function renderProfil(){
           ${dateLabel?`<div class="badge-tile-date">${dateLabel}</div>`:''}
         </div>`;
       }).join('');
-      const hiddenCount=BADGES.length-BADGE_MAX_VISIBLE;
+      const hiddenCount=Math.max(BADGES.length-BADGE_MAX_VISIBLE,0);
       const expandBtn=hiddenCount>0?`<button class="expand-more-btn" onclick="toggleBadgesExpand()">
           <span class="expand-chevron${badgesExpanded?' open':''}">▼</span> ${badgesExpanded?'Zwiń':'Rozwiń '+hiddenCount+' więcej'}
         </button>`:'';
