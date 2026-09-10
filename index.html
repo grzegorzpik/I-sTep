@@ -989,6 +989,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .cel-legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
 
 /* Next milestone */
+.cel-deposit-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+  margin-top:10px;padding:11px;border-radius:10px;border:none;font:inherit;font-size:13px;
+  font-weight:700;cursor:pointer;background:rgba(108,92,231,.1);color:var(--neon-violet);
+  transition:background .15s,transform .1s;}
+.cel-deposit-btn:active{background:rgba(108,92,231,.2);transform:scale(.98);}
 .cel-next{display:flex;align-items:center;gap:6px;margin-top:10px;
   padding:8px 12px;border-radius:9px;background:rgba(8,145,178,.06);
   border:1px solid rgba(8,145,178,.1);}
@@ -1046,7 +1051,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .celd-btn-edit{background:rgba(108,92,231,.1);color:var(--neon-violet);}
 .celd-btn-delete{background:rgba(255,107,91,.12);color:var(--neon-red);}
 
-/* ══ GARAGE MODULE */ ══════════════════════════════════════════════ */
+/* ══ GARAGE MODULE ══════════════════════════════════════════════ */
 .garaz-header{padding:20px 20px 16px;}
 .garaz-add-btn{padding:10px 18px;border-radius:12px;border:none;
   background:var(--neon-emerald);color:#fff;font-size:13px;font-weight:700;
@@ -1630,7 +1635,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
         </div>
         <!-- Stats grid -->
         <div class="prf-stats-grid">
-          <div class="prf-stat"><div class="prf-stat-val" id="prf-goals-done">0</div><div class="prf-stat-lbl">Celów</div></div>
+          <div class="prf-stat"><div class="prf-stat-val" id="prf-goals-done">0</div><div class="prf-stat-lbl">Celów<br>spełnionych</div></div>
           <div class="prf-stat"><div class="prf-stat-val" id="prf-items-sold">0</div><div class="prf-stat-lbl">Sprzedanych</div></div>
           <div class="prf-stat"><div class="prf-stat-val" id="prf-budget-ok">0</div><div class="prf-stat-lbl">Tyg. zielonych</div></div>
           <div class="prf-stat"><div class="prf-stat-val" id="prf-xp-level">1</div><div class="prf-stat-lbl">Poziom</div></div>
@@ -3255,9 +3260,12 @@ function checkWeeklyGreenZone(){
 // the current billing cycle, so the two can never stay out of sync for long.
 function recalcCatSpent(){
   const cycleStart=getCycleStart();
+  const cycleEnd=getNextCycleStart();
   const sums={};
   loadExpenses().forEach(e=>{
-    if(new Date(e.ts) < cycleStart) return; // belongs to a prior, already-closed cycle
+    const t=new Date(e.ts);
+    if(t < cycleStart) return; // belongs to a prior, already-closed cycle
+    if(t >= cycleEnd) return;  // dated into a future cycle — not spent yet
     sums[e.catId]=parseFloat(((sums[e.catId]||0)+(e.amount||0)).toFixed(2));
   });
   let changed=false;
@@ -3443,7 +3451,7 @@ function buildCatCard(cat){
         const bc=p<.6?'green':p<.85?'yellow':'red';
         miniCard.innerHTML=`<div class="cat-top"><div class="cat-left">
           <div class="cat-icon-wrap" style="background:${catBg(bc)}">${c.emoji}</div>
-          <div><div class="cat-name">${c.name}</div>
+          <div><div class="cat-name">${esc(c.name)}</div>
           <div class="cat-sub">Wydano: ${fmt(c.spent)} / ${fmt(c.limit)} zł</div></div>
           </div><div class="cat-amount">
           <div class="cat-spent" style="color:${ov?'var(--neon-red)':'var(--text-primary)'}">${fmt(c.spent)} zł</div>
@@ -3482,7 +3490,7 @@ function buildCatCard(cat){
       <div class="cat-left">
         <div class="cat-icon-wrap" data-cat-icon="${cat.id}" style="background:${catBg(barClass)}">${cat.emoji}</div>
         <div>
-          <div class="cat-name">${cat.name}</div>
+          <div class="cat-name">${esc(cat.name)}</div>
           <div class="cat-sub">Wydano: ${fmt(cat.spent)} / ${fmt(cat.limit)} zł</div>
         </div>
       </div>
@@ -3531,6 +3539,12 @@ function buildCatCard(cat){
 }
 function catBg(bc){ return bc==='green'?'rgba(0,179,126,.12)':bc==='yellow'?'rgba(217,119,6,.12)':'rgba(255,107,91,.12)'; }
 function fmt(n){ return Number(n).toLocaleString('pl-PL',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+/* Escapes user-entered text for safe interpolation into innerHTML. */
+function esc(v){
+  return String(v==null?'':v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 /* ── Line-icon set (no emoji) — used by Odznaki / Nagrody ─────── */
 const ICONS = {
@@ -3671,7 +3685,7 @@ function renderCatDetail(){
       +' · '+d.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
     return `<div class="exp-row" id="exp-${e.id}">
       <div class="exp-meta">
-        <div class="exp-comment">${e.comment||'—'}</div>
+        <div class="exp-comment">${esc(e.comment||'—')}</div>
         <div class="exp-date">${dateStr}</div>
       </div>
       <div class="exp-amount">${fmt(e.amount)} zł</div>
@@ -3719,14 +3733,22 @@ function catdEdit(){
 function catdDelete(){
   const cat=cats.find(c=>c.id===catdCatId);
   if(!cat) return;
+  const linked=loadExpenses().filter(e=>e.catId===cat.id);
   closeModal('modal-cat-detail');
   setTimeout(()=>{
     showDeleteConfirm(cat.name, ()=>{
       cats=cats.filter(c=>c.id!==cat.id);
       saveCats(cats);
+      // Drop the category's expenses as well. Left behind they are invisible
+      // in the UI but still counted when the month is closed.
+      if(linked.length) saveExpenses(loadExpenses().filter(e=>e.catId!==cat.id));
       renderBudget();
-      showToast('✓ Kategoria „'+cat.name+'" usunięta');
-    });
+      renderStart();
+      showToast('✓ Kategoria „'+esc(cat.name)+'" usunięta'
+        + (linked.length?' wraz z '+linked.length+' wydatk'+(linked.length===1?'iem':'ami'):''));
+    }, linked.length
+      ? 'Razem z kategorią usuniętych zostanie '+linked.length+' zapisanych wydatków ('+fmt(linked.reduce((s,e)=>s+(e.amount||0),0))+' zł).'
+      : null);
   },340);
 }
 
@@ -3799,7 +3821,7 @@ function openKosztModal(preselect){
   cats=loadCats();
   /* populate category select */
   const sel=document.getElementById('cost-cat');
-  sel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
+  sel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.emoji} ${esc(c.name)}</option>`).join('');
   // Always set explicitly — never leave the <select> holding whatever value
   // it had from the last time this modal was open. Without this, adding a
   // cost from the general "+" button could silently reuse a category you
@@ -3810,16 +3832,24 @@ function openKosztModal(preselect){
   /* date — defaults to today, editable via native date picker */
   const now=new Date();
   const pad=n=>String(n).padStart(2,'0');
-  document.getElementById('cost-date').value=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const todayStr=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  const dateEl=document.getElementById('cost-date');
+  dateEl.value=todayStr;
+  dateEl.max=todayStr;   // no future-dated costs
   /* clear fields */
   document.getElementById('cost-amount').value='';
   document.getElementById('cost-comment').value='';
   document.getElementById('cost-cc').textContent='0';
   openModal('modal-koszt');
 }
+let _costSubmitting=false;
 function submitCost(){
+  if(_costSubmitting) return;   // double-tap guard: one tap, one expense
   const amtRaw=parseFloat(document.getElementById('cost-amount').value);
   if(!amtRaw||amtRaw<=0){ showToast('Podaj kwotę większą niż 0'); return; }
+  if(amtRaw>1000000){ showToast('Kwota wygląda na pomyłkę — maks. 1 000 000 zł'); return; }
+  _costSubmitting=true;
+  setTimeout(()=>{_costSubmitting=false;},600);
   const catId=document.getElementById('cost-cat').value;
   const comment=document.getElementById('cost-comment').value.trim();
   const dateVal=document.getElementById('cost-date').value; // 'YYYY-MM-DD'
@@ -3828,6 +3858,7 @@ function submitCost(){
   if(dateVal){
     const [y,m,d]=dateVal.split('-').map(Number);
     const chosen=new Date(y,m-1,d,now.getHours(),now.getMinutes(),now.getSeconds());
+    if(chosen>now){ _costSubmitting=false; showToast('Nie można zapisać kosztu z przyszłą datą'); return; }
     ts=chosen.toISOString();
   } else {
     ts=now.toISOString();
@@ -4198,16 +4229,16 @@ function buildItemCard(item, photoUrl){
     <div class="item-info">
       <div>
         <div class="item-top">
-          <div class="item-name">${item.name}</div>
+          <div class="item-name">${esc(item.name)}</div>
           ${item.price?`<div class="item-price">${fmt(item.price)} zł</div>`:''}
         </div>
         <div class="item-cat-row">
           <div class="item-cat-dot" style="background:${cat.color}"></div>
-          <div class="item-cat-name">${cat.name}</div>
+          <div class="item-cat-name">${esc(cat.name)}</div>
         </div>
       </div>
       <div class="item-bottom">
-        <div class="item-desc-preview">${item.desc||''}</div>
+        <div class="item-desc-preview">${esc(item.desc||'')}</div>
         <div class="status-badge ${sm.cls}">${icon(sm.icon,10)} ${sm.label}</div>
       </div>
     </div>
@@ -4241,7 +4272,7 @@ function populateGoalSelect(currentGoalId){
   const sel=document.getElementById('item-goal-id');
   const goals=loadGoals();
   sel.innerHTML='<option value="">— brak powiązania —</option>'+
-    goals.map(g=>`<option value="${g.id}"${g.id===currentGoalId?' selected':''}>${g.emoji} ${g.name}</option>`).join('');
+    goals.map(g=>`<option value="${g.id}"${g.id===currentGoalId?' selected':''}>${g.emoji} ${esc(g.name)}</option>`).join('');
 }
 
 function openAddItemModal(){
@@ -4742,10 +4773,10 @@ function openItemStatusModal(id){
     <div class="ist-item-header">
       <div class="ist-photo">${photoHtml}</div>
       <div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:2px">${item.name}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:2px">${esc(item.name)}</div>
         <div style="display:flex;align-items:center;gap:6px">
           <div class="item-cat-dot" style="background:${cat.color}"></div>
-          <div style="font-size:12px;color:var(--text-muted)">${cat.name}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${esc(cat.name)}</div>
         </div>
         ${item.price?`<div style="font-size:13px;color:var(--neon-emerald);font-weight:700;margin-top:3px">${fmt(item.price)} zł</div>`:''}
       </div>
@@ -4813,7 +4844,7 @@ function openGoalLinkModal(goals, item){
     return `<div class="goal-link-card${isSel?' selected':''}" id="glc-${g.id}" onclick="selectGoalLink('${g.id}')">
       <div class="gl-icon">${g.emoji}</div>
       <div class="gl-info">
-        <div class="gl-name">${g.name}</div>
+        <div class="gl-name">${esc(g.name)}</div>
         <div class="gl-progress">${pct}% z ${fmt(g.target||0)} zł</div>
       </div>
       <div class="gl-check">${isSel?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
@@ -4892,14 +4923,15 @@ function deleteItem(id){
   },320); // wait for modal close animation
 }
 
-function showDeleteConfirm(name, onConfirm){
+function showDeleteConfirm(name, onConfirm, extraNote){
   // Use a custom inline confirm instead of browser confirm()
   const overlay = document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(20,19,31,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;';
   overlay.innerHTML=`<div style="background:#FFFFFF;border:1px solid rgba(20,19,31,.08);border-radius:20px;padding:28px 24px;max-width:340px;width:100%;text-align:center;">
     <div style="width:56px;height:56px;border-radius:16px;background:rgba(255,107,91,.12);color:var(--neon-red);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">${icon('trash',24)}</div>
-    <div style="font-size:17px;font-weight:700;margin-bottom:8px;">Usuń przedmiot?</div>
-    <div style="font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:24px;">"${name}" zostanie trwale usunięty z garażu.</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:8px;">Na pewno usunąć?</div>
+    <div style="font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:${extraNote?'12px':'24px'};">"${esc(name)}" zostanie trwale usunięty.</div>
+    ${extraNote?`<div style="font-size:12px;color:var(--neon-red);line-height:1.5;margin-bottom:22px;font-weight:600;">${esc(extraNote)}</div>`:''}
     <div style="display:flex;gap:10px;">
       <button onclick="this.closest('[style]').remove()" style="flex:1;padding:13px;border-radius:12px;border:none;background:rgba(20,19,31,.07);color:#94a3b8;font-size:14px;font-weight:600;cursor:pointer;">Anuluj</button>
       <button id="del-confirm-btn" style="flex:1;padding:13px;border-radius:12px;border:none;background:var(--neon-red);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Usuń</button>
@@ -5006,8 +5038,8 @@ function buildGoalCard(goal, items){
     <div class="cel-card-top">
       <div class="cel-card-icon">${goal.emoji||'🎯'}</div>
       <div class="cel-card-info">
-        <div class="cel-card-name">${goal.name}${isGoalAuto(goal)?'':'<span class="goal-fund-tag">elastyczny</span>'}</div>
-        <div class="cel-card-desc">${goal.desc||'—'}</div>
+        <div class="cel-card-name">${esc(goal.name)}${isGoalAuto(goal)?'':'<span class="goal-fund-tag">elastyczny</span>'}</div>
+        <div class="cel-card-desc">${esc(goal.desc||'—')}</div>
       </div>
       <div class="cel-card-right">
         <div class="cel-pct">${pct}%</div>
@@ -5034,6 +5066,10 @@ function buildGoalCard(goal, items){
           <span class="cel-next-label" style="display:inline-flex;align-items:center;gap:4px;">${icon('wallet',12)} Wpłaty</span>
           <span class="cel-next-date">Dowolne — poza budżetem</span>
         </div>`}
+    ${saved>=target && target>0 ? '' : `<button type="button" class="cel-deposit-btn"
+      onclick="event.stopPropagation();openCelDeposit('${goal.id}')">
+      ${icon('wallet',13)} Wpłać${isGoalAuto(goal)&&monthlyRate?' ratę '+fmt(monthlyRate)+' zł':''}
+    </button>`}
   </div>`;
 }
 
@@ -5323,15 +5359,15 @@ function openCelDetail(id){
     const sm=STATUS_META[i.status];
     return `<div class="celd-linked-row">
       <div class="celd-linked-icon">${GARAGE_CATS[i.cat]?.emoji||'📦'}</div>
-      <div class="celd-linked-name">${i.name}</div>
+      <div class="celd-linked-name">${esc(i.name)}</div>
       <div class="status-badge ${sm.cls}" style="margin-right:8px">${icon(sm.icon,10)}</div>
       <div class="celd-linked-price" style="color:${i.status==='sprzedany'?'var(--neon-emerald)':'var(--text-muted)'}">${fmt(i.price||0)} zł</div>
     </div>`;
   }).join('');
 
-  document.getElementById('celd-title').textContent = goal.emoji+' '+goal.name;
+  document.getElementById('celd-title').textContent = goal.emoji+' '+esc(goal.name);
   document.getElementById('celd-body').innerHTML = `
-    ${goal.desc?`<p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:18px">${goal.desc}</p>`:''}
+    ${goal.desc?`<p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:18px">${esc(goal.desc)}</p>`:''}
 
     <div class="celd-progress-section">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
@@ -5394,19 +5430,25 @@ function openCelDetail(id){
 }
 
 function deleteCel(id){
+  const goal=loadGoals().find(g=>g.id===id);
+  if(!goal) return;
+  const linked=loadItems().filter(i=>i.goalId===id);
   closeModal('modal-cel-detail');
   setTimeout(()=>{
-    if(confirm('Usunąć ten cel?\nPowiązanie z przedmiotami w garażu zostanie usunięte.')){
-      // remove goalId from items
+    showDeleteConfirm(goal.name, ()=>{
+      // unlink items rather than deleting them — the things still exist
       const items=loadItems().map(i=>i.goalId===id?{...i,goalId:null}:i);
       saveItems(items);
-      const goals=loadGoals().filter(g=>g.id!==id);
-      saveGoals(goals);
+      saveGoals(loadGoals().filter(g=>g.id!==id));
+      garazItems=loadItems();
       renderCele();
       renderGaraz();
+      renderBudget();
+      renderStart();
       showToast('Cel usunięty');
-    }
-  },100);
+    }, (goal.saved>0 ? 'Zapis o '+fmt(goal.saved)+' zł odłożonych na ten cel zniknie. ' : '')
+       + (linked.length ? linked.length+' przedmiot'+(linked.length===1?'':'y')+' z garażu straci powiązanie (same przedmioty zostaną).' : ''));
+  },340);
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -5465,10 +5507,10 @@ function applyGoalAdaptation(item){
   if(overflow>0){
     // Goal is now full and there's leftover cash from the sale — let the
     // person route it to another goal instead of it just disappearing.
-    showToast('🎯 '+goal.emoji+' '+goal.name+' — cel osiągnięty! Zostało '+fmt(overflow)+' zł nadwyżki.');
+    showToast('🎯 '+goal.emoji+' '+esc(goal.name)+' — cel osiągnięty! Zostało '+fmt(overflow)+' zł nadwyżki.');
     setTimeout(()=>openTriumphModal(overflow,'item_overflow'), 600);
   } else {
-    showToast('💰 +'+fmt(applied)+' zł → '+goal.emoji+' '+goal.name
+    showToast('💰 +'+fmt(applied)+' zł → '+goal.emoji+' '+esc(goal.name)
       + (isGoalAuto(goal)
           ? '  (rata ↓ '+fmt(goal.monthlyRate)+' zł/mies.)'
           : '  (zostało '+fmt(Math.max((goal.target||0)-(goal.saved||0),0))+' zł)'));
@@ -5536,10 +5578,13 @@ function submitCelDeposit(){
   }
 
   if(overflow>0){
-    showToast('🎯 '+goal.emoji+' '+goal.name+' — cel osiągnięty! Zostało '+fmt(overflow)+' zł nadwyżki.');
+    showToast('🎯 '+goal.emoji+' '+esc(goal.name)+' — cel osiągnięty! Zostało '+fmt(overflow)+' zł nadwyżki.');
     setTimeout(()=>openTriumphModal(overflow,'item_overflow'), 600);
   } else {
-    showToast('✓ +'+fmt(applied)+' zł → '+goal.emoji+' '+goal.name+'  (rata ↓ '+fmt(goal.monthlyRate)+' zł/mies.)');
+    showToast('✓ +'+fmt(applied)+' zł → '+goal.emoji+' '+esc(goal.name)
+      + (isGoalAuto(goal)
+          ? '  (rata ↓ '+fmt(goal.monthlyRate)+' zł/mies.)'
+          : '  (zostało '+fmt(Math.max((goal.target||0)-(goal.saved||0),0))+' zł)'));
   }
   _depositGoalId=null;
 }
@@ -6156,6 +6201,8 @@ function switchTabByName(name){
 }
 
 function renderStart(){
+  recalcCatSpent();   // same self-heal the budget tab does — the dashboard
+                      // must never quote a spend figure the budget disagrees with
   const goals   = loadGoals();
   const items   = loadItems();
   const xpData  = loadXP();
@@ -6212,7 +6259,7 @@ function renderStart(){
         <div class="goal-banner-top">
           <div>
             <div class="goal-banner-eyebrow">GŁÓWNY CEL</div>
-            <div class="goal-banner-title">${g.name}</div>
+            <div class="goal-banner-title">${esc(g.name)}</div>
           </div>
           <div class="goal-icon-circle">${g.emoji}</div>
         </div>
@@ -6294,7 +6341,8 @@ function renderStart(){
       const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
       const daysInCycle=Math.round((nextCycle-cycleStart)/86400000);
       const daysElapsed=Math.round((today-cycleStart)/86400000)+1;
-      if(lastMonthSpent>0 && daysElapsed>0){
+      const MIN_DAYS_FOR_TREND=5;
+      if(lastMonthSpent>0 && daysElapsed>=MIN_DAYS_FOR_TREND){
         const projected=catsSpent/daysElapsed*daysInCycle;
         const diffPct=Math.round((projected-lastMonthSpent)/lastMonthSpent*100);
         let ic,color,txt;
@@ -6302,8 +6350,10 @@ function renderStart(){
         else if(diffPct>=5){ ic='trendUp'; color='var(--neon-red)'; txt=diffPct+'% więcej'; }
         else { ic='trendFlat'; color='rgba(255,255,255,.7)'; txt='podobnie jak zwykle'; }
         trendEl.innerHTML=`<span style="display:flex;color:${color}">${icon(ic,14)}</span><span style="color:${color}">${txt}</span>`;
+      } else if(lastMonthSpent>0){
+        trendEl.innerHTML=`<span style="color:rgba(255,255,255,.5);font-size:12px;font-weight:600;">tempo od ${MIN_DAYS_FOR_TREND}. dnia cyklu</span>`;
       } else {
-        trendEl.innerHTML=`<span style="color:rgba(255,255,255,.5);font-size:12px;font-weight:600;">za wcześnie, by porównać</span>`;
+        trendEl.innerHTML=`<span style="color:rgba(255,255,255,.5);font-size:12px;font-weight:600;">pierwszy miesiąc — brak porównania</span>`;
       }
     }
     if(daysEl){
@@ -6335,7 +6385,7 @@ function renderStart(){
               : `<div style="font-size:30px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${cat.emoji}</div>`}
           </div>
           <div class="dash-garage-info">
-            <div class="dash-garage-name">${item.name}</div>
+            <div class="dash-garage-name">${esc(item.name)}</div>
             <div class="dash-garage-price">${item.price?fmt(item.price)+' zł':'—'}</div>
             <div class="dash-garage-status ${statusMeta.cls}">${statusMeta.label}</div>
           </div>
@@ -6861,9 +6911,12 @@ function renderProfil(){
   s('prf-xp-total', fmt(xpData.total)+' PTS');
   s('prf-rank', rankIcon+' '+rankName);
   s('prf-xp-cur', fmt(xpData.total)+' XP');
-  s('prf-xp-next-lbl', 'do poz. '+(level+1)+' → '+fmt(XP_TABLE[Math.min(level,XP_TABLE.length-1)])+' XP');
+  const maxLevel = level>=XP_TABLE.length;
+  s('prf-xp-next-lbl', maxLevel
+      ? 'poziom maksymalny'
+      : 'do poz. '+(level+1)+' → '+fmt(XP_TABLE[Math.min(level,XP_TABLE.length-1)])+' XP');
   s('prf-xp-level', level);
-  const bar=document.getElementById('prf-xp-bar'); if(bar) bar.style.width=pct+'%';
+  const bar=document.getElementById('prf-xp-bar'); if(bar) bar.style.width=(maxLevel?100:pct)+'%';
 
   // Computed stats
   const goals=loadGoals(); const items=loadItems();
@@ -7005,8 +7058,8 @@ function openArmorySlot(slot){
           <span style="font-size:28px">${getItemEmoji(item.id)}</span>
         </div>
         <div class="armory-v2-info">
-          <div class="armory-v2-name">${item.name}</div>
-          <div class="armory-v2-desc">${item.desc}</div>
+          <div class="armory-v2-name">${esc(item.name)}</div>
+          <div class="armory-v2-desc">${esc(item.desc)}</div>
           ${badge}
         </div>
         <button class="armory-v2-btn" style="${btnStyle}"
@@ -7029,10 +7082,10 @@ function armoryAction(itemId, slot){
   const isEq=equip[slot]===itemId;
   if(isEq){
     delete equip[slot]; saveEquip(equip);
-    showToast('Zdjęto: '+item.name);
+    showToast('Zdjęto: '+esc(item.name));
   } else if(isOwned){
     equip[slot]=itemId; saveEquip(equip);
-    showToast('✓ Założono: '+item.name);
+    showToast('✓ Założono: '+esc(item.name));
   } else {
     if(xpData.total<item.price){ showToast('Za mało XP! Potrzebujesz '+fmt(item.price)+' XP'); return; }
     xpData.total-=item.price;
@@ -7040,7 +7093,7 @@ function armoryAction(itemId, slot){
     saveXP(xpData);
     owned.push(itemId); saveOwned(owned);
     equip[slot]=itemId; saveEquip(equip);
-    showToast('🎉 Zakupiono: '+item.name+' — Założono!');
+    showToast('🎉 Zakupiono: '+esc(item.name)+' — Założono!');
   }
   renderProfil();
   openArmorySlot(slot); // refresh modal
@@ -7067,8 +7120,8 @@ function renderRewards(xpTotal){
           return `<div class="prf-reward-card${canBuy?' can-buy':''}" onclick="${canBuy?`buyPakt('${p.id}')`:'void 0'}">
             <div class="prf-reward-glow" style="background:${p.color}"></div>
             <div class="prf-reward-icon" style="color:${p.color}">${icon(p.icon,22)}</div>
-            <div class="prf-reward-name">${p.name}</div>
-            <div class="prf-reward-desc">${p.desc}</div>
+            <div class="prf-reward-name">${esc(p.name)}</div>
+            <div class="prf-reward-desc">${esc(p.desc)}</div>
             <div class="prf-reward-price" style="color:${canBuy?p.color:'var(--text-muted)'}">
               ${fmt(p.price)} pkt
             </div>
@@ -7105,7 +7158,7 @@ function renderRewardHistory(){
       const dateLabel=d.toLocaleDateString('pl-PL',{day:'numeric',month:'short'});
       return `<div class="prf-history-row">
       <span style="display:flex;align-items:center;color:var(--text-secondary);">${icon(q.icon,16)}</span>
-      <span style="flex:1;font-size:12px;">${q.name}</span>
+      <span style="flex:1;font-size:12px;">${esc(q.name)}</span>
       <span style="font-size:11px;color:var(--text-muted);font-weight:600;">${dateLabel}</span>
     </div>`;}).join('');
 }
@@ -7121,8 +7174,8 @@ function renderPakty(xpTotal){
     return `<div class="pakt-card">
       <div class="pakt-icon">${icon(p.icon,20)}</div>
       <div class="pakt-info">
-        <div class="pakt-name">${p.name}</div>
-        <div class="pakt-desc">${p.desc} · <span style="color:var(--neon-violet);font-weight:700">${fmt(p.price)} XP</span></div>
+        <div class="pakt-name">${esc(p.name)}</div>
+        <div class="pakt-desc">${esc(p.desc)} · <span style="color:var(--neon-violet);font-weight:700">${fmt(p.price)} XP</span></div>
       </div>
       <button class="pakt-buy-btn" ${canAfford?'':'disabled'}
         onclick="buyPakt('${p.id}')">Kup</button>
@@ -7154,7 +7207,7 @@ function renderPaktQueue(){
   el.innerHTML='<div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Historia paktów</div>'+
     queue.map(q=>`<div class="pakt-queue-row">
       <div class="pakt-queue-icon">${icon(q.icon,16)}</div>
-      <div style="flex:1;font-size:12px">${q.name}</div>
+      <div style="flex:1;font-size:12px">${esc(q.name)}</div>
       <div class="pakt-queue-status">${q.synced?'✓ Wysłano':'⏳ Kolejka'}</div>
     </div>`).join('');
 }
@@ -7209,7 +7262,7 @@ function openTriumphModal(customAmount, context){
       return `<div class="triumph-alloc-row">
         <div class="triumph-alloc-top">
           <div class="triumph-alloc-icon">${g.emoji}</div>
-          <div class="triumph-alloc-name">${g.name}</div>
+          <div class="triumph-alloc-name">${esc(g.name)}</div>
           <div class="triumph-alloc-val" id="ta-val-${g.id}">0 zł</div>
         </div>
         <input type="range" class="triumph-alloc-slider" id="ta-sl-${g.id}"
@@ -7432,7 +7485,7 @@ function handleImport(input){
               await dbSet(k,data[k]);
             }
           }
-          showToast('✓ Import zakończony — '+data._meta.playerName);
+          showToast('✓ Import zakończony — '+esc(data._meta.playerName));
           setTimeout(()=>location.reload(),1200);
         }
       );
