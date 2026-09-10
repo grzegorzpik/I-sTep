@@ -184,9 +184,10 @@ Rzeczy, które działają, ale warto o nich wiedzieć — świadomie **nie** rus
   czy *w tym momencie* wszystkie kategorie są poniżej 60% limitu — nie weryfikuje
   siedmiu kolejnych dni. Nazwa obiecuje więcej niż mechanizm dowozi.
   To decyzja produktowa, nie błąd.
-- **PIN trzymany jawnie** w IndexedDB (`salvage_pin`), domyślny `1989` zapisany
-  w kodzie. Przy danych czysto lokalnych to bariera przed przypadkowym wzrokiem,
-  nie zabezpieczenie — warto to komunikować wprost.
+- **PIN trzymany jawnie** w IndexedDB (`salvage_pin`). Przy danych czysto
+  lokalnych to bariera przed przypadkowym wzrokiem, nie zabezpieczenie —
+  warto to komunikować wprost. *(Domyślny `1989` zaszyty w kodzie został
+  usunięty — patrz `docs/ZMIANY.md`.)*
 - **Zdjęcia w IndexedDB** rosną szybko. Baner ostrzegawczy pojawia się dopiero
   przy 85% zapełnienia, a jedyne wyjście to ręczne kasowanie albo reset.
 

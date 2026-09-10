@@ -9,7 +9,9 @@ a odzyskane pieniądze przesuwasz na konkretne cele.
 Otwórz `index.html` w przeglądarce (albo dodaj do ekranu głównego jako PWA).
 Aplikacja nie wymaga serwera ani backendu — całość działa lokalnie.
 
-- **PIN startowy:** `1989` (zmienialny w Profil → Administracja → Zmień PIN)
+- **PIN:** ustawiasz własny przy pierwszym uruchomieniu na danym urządzeniu
+  (zmiana: Profil → Administracja → Zmień PIN). Nie ma kodu domyślnego ani
+  odzyskiwania — zapomniany PIN oznacza reset danych.
 - **Dane:** IndexedDB w przeglądarce (`salvage_db`), zdjęcia jako Blob
 - **Backup:** Profil → Administracja → Backup / Import (plik JSON)
 
@@ -19,6 +21,7 @@ Aplikacja nie wymaga serwera ani backendu — całość działa lokalnie.
 |---|---|
 | `index.html` | Cała aplikacja (HTML + CSS + JS w jednym pliku) |
 | `docs/AUDIT.md` | Audyt działania mechanizmów + lista poprawek |
+| `docs/ZMIANY.md` | Zmiany funkcjonalne: PIN na urządzeniu, tryby finansowania celów |
 | `docs/koncepcja-apki-edukacyjnej.md` | Koncepcja aplikacji edukacyjnej I-sTep |
 | `docs/README-HANDOFF.md` | Notatki handoff do prototypów |
 | `prototypy/` | Wcześniejsze prototypy HTML (I-sTep, logo, onboarding) |
@@ -27,6 +30,7 @@ Aplikacja nie wymaga serwera ani backendu — całość działa lokalnie.
 
 - **Budżet** — kategorie z limitami, koszty, elastyczne łatanie przekroczeń
 - **Garaż** — przedmioty do sprzedaży (zdjęcie, cena, status), powiązanie z celami
-- **Cele** — cele oszczędnościowe z ratą miesięczną i rezerwą w budżecie
+- **Cele** — cele oszczędnościowe w dwóch trybach: automatycznym (stała rata
+  rezerwowana w budżecie) albo elastycznym (dowolne wpłaty, bez rezerwacji)
 - **Start** — dashboard: pozostały budżet, trend vs poprzedni miesiąc, dni do wypłaty
 - **Profil** — XP, poziomy, odznaki, nagrody (pakty), backup/reset

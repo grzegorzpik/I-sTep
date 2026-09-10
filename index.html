@@ -88,6 +88,11 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .lock-icon svg{width:32px;height:32px;}
 .lock-title{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#14131F;}
 .lock-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#A6A4AD;font-weight:700;}
+.pin-prompt{font-size:13px;font-weight:600;color:#6E6C77;text-align:center;
+  min-height:18px;margin-bottom:14px;line-height:1.4;}
+.pin-forgot{display:block;margin:18px auto 0;padding:8px 14px;border:none;background:none;
+  font:inherit;font-size:12px;font-weight:600;color:#A6A4AD;text-decoration:underline;
+  cursor:pointer;}
 .lock-pin-area{display:flex;flex-direction:column;align-items:center;gap:20px;}
 .pin-dots{display:flex;gap:20px;margin-bottom:6px;}
 .pin-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid #E8E6DF;background:transparent;transition:all .15s ease;}
@@ -345,6 +350,24 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .life-bar.over{background:var(--neon-red);width:100%!important;}
 
 /* Overflow badge */
+/* ══ GOAL FUNDING MODE ═════════════════════════════════════════ */
+.fund-toggle{display:flex;flex-direction:column;gap:8px;}
+.fund-opt{display:flex;flex-direction:column;gap:3px;text-align:left;width:100%;
+  padding:12px 14px;border-radius:12px;cursor:pointer;font:inherit;
+  background:var(--bg-card2);border:1.5px solid var(--border-subtle);
+  transition:border-color .15s,background .15s;}
+.fund-opt.selected{border-color:var(--neon-violet);background:rgba(108,92,231,.08);}
+.fund-opt-title{font-size:13px;font-weight:700;color:var(--text-primary);}
+.fund-opt.selected .fund-opt-title{color:var(--neon-violet);}
+.fund-opt-desc{font-size:11px;line-height:1.4;color:var(--text-muted);}
+.fund-manual-note{font-size:12px;line-height:1.55;color:var(--text-secondary);
+  padding:12px 14px;margin-bottom:18px;border-radius:10px;
+  background:rgba(108,92,231,.06);border-left:3px solid var(--neon-violet);}
+.goal-fund-tag{display:inline-flex;align-items:center;font-size:9px;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:20px;
+  background:rgba(108,92,231,.12);color:var(--neon-violet);margin-left:6px;
+  vertical-align:middle;}
+
 .overflow-badge{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:700;
   padding:4px 4px 4px 10px;border-radius:20px;background:rgba(255,107,91,.1);
   color:var(--neon-red);margin-top:6px;}
@@ -1236,6 +1259,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
     <div class="lock-sub">Budżet z odzysku</div>
   </div>
   <div class="lock-pin-area">
+  <div class="pin-prompt" id="pin-prompt"></div>
   <div class="pin-dots">
     <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
     <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
@@ -1257,6 +1281,36 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
       <svg viewBox="0 0 24 24" fill="none" width="22" height="22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12H7M7 12L13 6M7 12L13 18"/></svg>
     </button>
   </div>
+  <button class="pin-forgot" id="pin-forgot" onclick="openPinForgot()">Nie pamiętam PIN-u</button>
+  </div>
+</div>
+
+<!-- Forgotten PIN. There is no server and no account, so the PIN cannot be
+     recovered or e-mailed — the only way back in is wiping local data. Say so
+     plainly instead of pretending there is a softer option. -->
+<div class="modal-overlay" id="modal-pin-forgot" onclick="bgClose(event,this)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">Nie pamiętasz PIN-u?</div>
+      <button class="modal-close" onclick="closeModal('modal-pin-forgot')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fund-manual-note" style="border-left-color:var(--neon-red);background:rgba(255,107,91,.07);margin-bottom:18px;">
+        PIN jest zapisany tylko na tym urządzeniu — nie ma konta ani serwera,
+        z którego dałoby się go odzyskać. Jedyne wyjście to skasowanie danych
+        aplikacji i ustawienie PIN-u od nowa.
+        <strong>Kategorie, wydatki, cele i zdjęcia z garażu przepadną bezpowrotnie.</strong>
+        Jeśli masz plik backupu, po resecie zaimportujesz z niego wszystko z powrotem.
+      </div>
+      <div class="form-group">
+        <label class="form-label">Wpisz KASUJ, żeby potwierdzić</label>
+        <input class="form-input" id="pin-forgot-input" type="text"
+          autocomplete="off" placeholder="KASUJ" oninput="onPinForgotInput(this.value)">
+      </div>
+      <button class="modal-submit" id="pin-forgot-btn" disabled
+        style="background:var(--neon-red);" onclick="executeReset()">Skasuj dane i ustaw nowy PIN</button>
+    </div>
   </div>
 </div>
 
@@ -1331,7 +1385,7 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 
     <!-- PIN reminder -->
     <div class="ob2-pin-info">
-      PIN dostępu: <strong>1989</strong> — możesz go zmienić w ustawieniach
+      PIN ustawiony na tym urządzeniu — zmienisz go w Profil → Administracja
     </div>
 
     <button class="ob2-cta" id="ob2-btn" disabled onclick="confirmOnboarding()">
@@ -1884,6 +1938,29 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
       </div>
 
       <!-- Dwusuwakowiec -->
+      <!-- Sposób finansowania — decyduje, czy cel zajmuje pozycję w budżecie -->
+      <div class="form-group">
+        <label class="form-label">Sposób finansowania</label>
+        <div class="fund-toggle">
+          <button type="button" class="fund-opt" id="fund-opt-auto" data-fund="auto"
+            onclick="setCelFunding('auto')">
+            <span class="fund-opt-title">Automatycznie</span>
+            <span class="fund-opt-desc">Stała rata co miesiąc, zarezerwowana w budżecie</span>
+          </button>
+          <button type="button" class="fund-opt" id="fund-opt-manual" data-fund="manual"
+            onclick="setCelFunding('manual')">
+            <span class="fund-opt-title">Elastycznie</span>
+            <span class="fund-opt-desc">Wpłacasz ile chcesz i kiedy chcesz — nic nie blokuje budżetu</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="fund-manual-note" id="fund-manual-note" style="display:none;">
+        Ten cel nie zajmie pozycji w budżecie. Nie ma stałej raty ani terminu —
+        odkładasz na niego wtedy, kiedy masz z czego: ze sprzedaży w garażu,
+        z nadwyżki na koniec miesiąca albo dowolną wpłatą.
+      </div>
+
       <div class="dual-slider-box" id="dual-slider-box">
         <div class="dsb-title">Kalkulator spłaty</div>
         <div class="dsb-row" style="margin-bottom:10px;">
@@ -2425,8 +2502,12 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 /* ════════════════════════════════════════════════════════════════
    CONSTANTS & STATE
 ════════════════════════════════════════════════════════════════ */
-const PIN = '1989';
+/* The PIN is chosen by the user on this device on first launch and lives only
+   in local IndexedDB — there is deliberately no built-in/default code, because
+   a hardcoded one opens every install of the app to anyone who knows it. */
 let pin = '';
+let pinMode = 'unlock';   // 'unlock' | 'set' | 'confirm'
+let pinFirstEntry = '';
 let selectedClass = null;
 
 const CLASS_META = {
@@ -2598,9 +2679,15 @@ function saveGoals(g){ _cSet('salvage_goals',g); }
    stay OUTSIDE this on purpose: they were never counted as available
    spending money in the first place, so routing them through the
    budget would just be a pointless detour. */
+// A goal is 'manual' when the user funds it ad hoc — it must never claim a
+// slot in the monthly budget. Goals saved before this option existed have no
+// `funding` field at all, so anything that isn't explicitly 'manual' keeps the
+// old automatic behaviour.
+function isGoalAuto(goal){ return !!goal && goal.funding!=='manual'; }
+
 function getGoalsReserveAmount(){
   return loadGoals()
-    .filter(g=>(g.saved||0)<(g.target||0))
+    .filter(g=>isGoalAuto(g) && (g.saved||0)<(g.target||0))
     .reduce((sum,g)=>sum+getGoalMonthlyRate(g),0);
 }
 function getBudgetTotals(){
@@ -2707,21 +2794,81 @@ function updateDots(){
 function pinPress(d){
   if(pin.length>=4) return;
   pin+=d; updateDots();
-  if(pin.length===4) setTimeout(checkPin,130);
+  if(pin.length===4){
+    const next = pinMode==='set' ? handlePinSet
+               : pinMode==='confirm' ? handlePinConfirm
+               : checkPin;
+    setTimeout(next,130);
+  }
 }
 function pinBackspace(){
   pin=pin.slice(0,-1); updateDots();
   document.getElementById('pin-error').classList.remove('visible');
 }
-function checkPin(){
-  const storedPin=_cGet('salvage_pin', PIN);
-  if(pin===storedPin){ afterUnlock(); }
-  else{
-    for(let i=0;i<4;i++){const d=document.getElementById('d'+i);d.classList.remove('filled');d.classList.add('error');}
-    document.getElementById('pin-error').classList.add('visible');
-    const np=document.getElementById('numpad'); np.classList.add('shake');
-    setTimeout(()=>{np.classList.remove('shake');pin='';updateDots();},450);
+
+/* Shared failure animation for a wrong PIN and for a mismatched repeat. */
+function pinReject(msg){
+  for(let i=0;i<4;i++){const d=document.getElementById('d'+i);d.classList.remove('filled');d.classList.add('error');}
+  const err=document.getElementById('pin-error');
+  err.textContent=msg||'Nieprawidłowy PIN';
+  err.classList.add('visible');
+  const np=document.getElementById('numpad'); np.classList.add('shake');
+  setTimeout(()=>{np.classList.remove('shake');pin='';updateDots();},450);
+}
+
+function setPinPrompt(text){
+  const el=document.getElementById('pin-prompt');
+  if(el) el.textContent=text||'';
+  const forgot=document.getElementById('pin-forgot');
+  // Nothing to forget while you are in the middle of choosing a code.
+  if(forgot) forgot.style.display = pinMode==='unlock' ? 'block' : 'none';
+}
+
+/* First launch on this device (or after a reset): pick a code. */
+function startPinSetup(){
+  pinMode='set'; pin=''; pinFirstEntry='';
+  updateDots();
+  document.getElementById('pin-error').classList.remove('visible');
+  setPinPrompt('Ustaw swój 4-cyfrowy PIN');
+}
+
+function handlePinSet(){
+  pinFirstEntry=pin;
+  pinMode='confirm'; pin=''; updateDots();
+  document.getElementById('pin-error').classList.remove('visible');
+  setPinPrompt('Powtórz PIN, żeby potwierdzić');
+}
+
+function handlePinConfirm(){
+  if(pin!==pinFirstEntry){
+    // Back to step one — confirming against a code you mistyped would just
+    // lock you out of your own app with a PIN you never meant to set.
+    pinMode='set'; pinFirstEntry='';
+    setPinPrompt('PIN-y się nie zgadzają — ustaw go jeszcze raz');
+    pinReject('PIN-y się nie zgadzają');
+    return;
   }
+  _cSet('salvage_pin', pin);
+  pinMode='unlock'; pinFirstEntry='';
+  setPinPrompt('');
+  showToast('✓ PIN ustawiony');
+  afterUnlock();
+}
+
+function checkPin(){
+  const storedPin=_cGet('salvage_pin', null);
+  if(!storedPin){ startPinSetup(); return; } // no code on this device yet
+  if(pin===storedPin){ afterUnlock(); }
+  else pinReject('Nieprawidłowy PIN');
+}
+
+function openPinForgot(){
+  document.getElementById('pin-forgot-input').value='';
+  document.getElementById('pin-forgot-btn').disabled=true;
+  openModal('modal-pin-forgot');
+}
+function onPinForgotInput(val){
+  document.getElementById('pin-forgot-btn').disabled = val.trim().toUpperCase()!=='KASUJ';
 }
 function afterUnlock(){
   const name=loadPlayerName();
@@ -3189,7 +3336,7 @@ function renderBudget(){
    goal monthly rates. Not part of `cats` — nothing to edit, drag, or
    delete, it just mirrors whatever the Cele tab currently plans for. */
 function buildGoalReserveCard(reserve){
-  const activeGoals=loadGoals().filter(g=>(g.saved||0)<(g.target||0));
+  const activeGoals=loadGoals().filter(g=>isGoalAuto(g) && (g.saved||0)<(g.target||0));
   const card=document.createElement('div');
   card.className='cat-card cat-card-locked';
   card.style.cursor='pointer';
@@ -4857,7 +5004,7 @@ function buildGoalCard(goal, items){
     <div class="cel-card-top">
       <div class="cel-card-icon">${goal.emoji||'🎯'}</div>
       <div class="cel-card-info">
-        <div class="cel-card-name">${goal.name}</div>
+        <div class="cel-card-name">${goal.name}${isGoalAuto(goal)?'':'<span class="goal-fund-tag">elastyczny</span>'}</div>
         <div class="cel-card-desc">${goal.desc||'—'}</div>
       </div>
       <div class="cel-card-right">
@@ -4876,10 +5023,15 @@ function buildGoalCard(goal, items){
       </div>
       ${legendShadow}
     </div>
-    ${deadlineLabel ? `<div class="cel-next">
-      <span class="cel-next-label" style="display:inline-flex;align-items:center;gap:4px;">${icon('calendar',12)} Termin</span>
-      <span class="cel-next-date">${deadlineLabel}${monthlyRate ? ' · '+fmt(monthlyRate)+' zł/mies.' : ''}</span>
-    </div>` : ''}
+    ${isGoalAuto(goal)
+      ? (deadlineLabel ? `<div class="cel-next">
+          <span class="cel-next-label" style="display:inline-flex;align-items:center;gap:4px;">${icon('calendar',12)} Termin</span>
+          <span class="cel-next-date">${deadlineLabel}${monthlyRate ? ' · '+fmt(monthlyRate)+' zł/mies.' : ''}</span>
+        </div>` : '')
+      : `<div class="cel-next">
+          <span class="cel-next-label" style="display:inline-flex;align-items:center;gap:4px;">${icon('wallet',12)} Wpłaty</span>
+          <span class="cel-next-date">Dowolne — poza budżetem</span>
+        </div>`}
   </div>`;
 }
 
@@ -4888,6 +5040,20 @@ function buildGoalCard(goal, items){
 ════════════════════════════════════════════════════════════════ */
 let celEmoji = '✈️';
 let editingCelId = null;
+let celFunding = 'auto';
+
+/* Switches the goal between a fixed monthly rate reserved in the budget and
+   ad-hoc funding. In 'manual' mode the repayment calculator is meaningless —
+   there is no rate and no deadline — so it is hidden rather than left on
+   screen producing numbers the goal will never use. */
+function setCelFunding(mode){
+  celFunding = mode==='manual' ? 'manual' : 'auto';
+  const auto = celFunding==='auto';
+  document.getElementById('fund-opt-auto').classList.toggle('selected', auto);
+  document.getElementById('fund-opt-manual').classList.toggle('selected', !auto);
+  document.getElementById('dual-slider-box').style.display = auto ? '' : 'none';
+  document.getElementById('fund-manual-note').style.display = auto ? 'none' : 'block';
+}
 
 function openCelModal(id){
   editingCelId = id || null;
@@ -4913,6 +5079,9 @@ function openCelModal(id){
   const months  = goal?.months  || 12;
   document.getElementById('cel-deadline-input').value = goal?.deadline || '';
   initDualSlider(target, saved, monthly, months);
+  // Goals created before this option existed have no `funding` field — they
+  // were all automatic, so that is what they open as.
+  setCelFunding(goal?.funding || 'auto');
   openModal('modal-cel');
 }
 
@@ -5042,6 +5211,10 @@ function monthsUntil(dateStr){
 // next time you look, not sit frozen at an increasingly optimistic number.
 function getGoalMonthlyRate(goal){
   if(!goal) return 0;
+  // Elastic goals are funded whenever the user feels like it, so there is no
+  // rate to display, to reserve, or to fall behind on. Returning 0 here makes
+  // every "X zł/mies." label across the app disappear on its own.
+  if(!isGoalAuto(goal)) return 0;
   const remaining = Math.max((goal.target||0)-(goal.saved||0), 0);
   if(remaining<=0) return 0;
   const monthsLeft = goal.deadline ? monthsUntil(goal.deadline) : (goal.months||12);
@@ -5079,26 +5252,35 @@ function submitCel(){
   if(!name)  { showToast('Podaj nazwę celu'); return; }
   if(!target){ showToast('Podaj kwotę docelową'); return; }
 
-  // Compute deadline — prefer the exact date the user picked, otherwise derive from months
-  let deadline;
-  if(deadlineInput){
-    deadline = new Date(deadlineInput+'T00:00:00');
-  } else {
-    deadline = new Date();
-    deadline.setMonth(deadline.getMonth() + months);
+  const isAuto = celFunding!=='manual';
+
+  // Compute deadline — prefer the exact date the user picked, otherwise derive
+  // from months. An elastic goal has neither: storing a rate or a deadline it
+  // never agreed to would put it straight back into the budget on next load.
+  let deadlineStr = null;
+  if(isAuto){
+    let deadline;
+    if(deadlineInput){
+      deadline = new Date(deadlineInput+'T00:00:00');
+    } else {
+      deadline = new Date();
+      deadline.setMonth(deadline.getMonth() + months);
+    }
+    deadlineStr = deadline.toISOString().slice(0,10);
   }
+  const fields = isAuto
+    ? {funding:'auto',   monthlyRate:monthly, months, deadline:deadlineStr}
+    : {funding:'manual', monthlyRate:0,       months:null, deadline:null};
 
   const goals = loadGoals();
   if(editingCelId){
     const idx = goals.findIndex(g=>g.id===editingCelId);
-    if(idx>-1) goals[idx]={...goals[idx],name,desc,emoji:celEmoji,target,saved,monthlyRate:monthly,months,
-      deadline:deadline.toISOString().slice(0,10)};
+    if(idx>-1) goals[idx]={...goals[idx],name,desc,emoji:celEmoji,target,saved,...fields};
     showToast('✓ Cel zaktualizowany');
   } else {
     goals.push({id:'cel_'+Date.now(),name,desc,emoji:celEmoji,target,saved,
-      monthlyRate:monthly,months,deadline:deadline.toISOString().slice(0,10),
-      createdAt:new Date().toISOString()});
-    showToast('Cel dodany');
+      ...fields, createdAt:new Date().toISOString()});
+    showToast(isAuto?'Cel dodany':'Cel dodany — bez rezerwacji w budżecie');
   }
   saveGoals(goals);
   closeModal('modal-cel');
@@ -5172,6 +5354,7 @@ function openCelDetail(id){
         <div class="celd-stat-label">Pozostało</div>
         <div class="celd-stat-val" style="color:var(--neon-cyan)">${fmt(remaining)} zł</div>
       </div>
+      ${isGoalAuto(goal) ? `
       <div class="celd-stat">
         <div class="celd-stat-label">Rata mies.</div>
         <div class="celd-stat-val" style="color:var(--neon-emerald)">${fmt(monthlyRate)} zł</div>
@@ -5183,7 +5366,15 @@ function openCelDetail(id){
       <div class="celd-stat">
         <div class="celd-stat-label">Termin</div>
         <div class="celd-stat-val" style="font-size:12px">${deadlineLabel}</div>
+      </div>` : `
+      <div class="celd-stat">
+        <div class="celd-stat-label">Finansowanie</div>
+        <div class="celd-stat-val" style="color:var(--neon-violet);font-size:12px">Elastyczne</div>
       </div>
+      <div class="celd-stat">
+        <div class="celd-stat-label">W budżecie</div>
+        <div class="celd-stat-val" style="font-size:12px">Nie rezerwuje</div>
+      </div>`}
     </div>
 
     ${linkedHtml ? `<div class="celd-linked-items">
@@ -5239,6 +5430,14 @@ function depositToGoal(goal, amount){
   // looking like a windfall (remaining shrinks, divisor doesn't). Using the
   // real time-to-deadline means: pay on pace → rate stays flat, overpay →
   // rate drops, skip a month → rate goes up to catch up by the same date.
+  if(!isGoalAuto(goal)){
+    // Elastic goal: no schedule to re-fit a deposit into. Writing months /
+    // monthlyRate here would quietly hand it back the shape of an automatic
+    // goal, which is exactly what the user opted out of.
+    goal.months = null;
+    goal.monthlyRate = 0;
+    return {applied, overflow};
+  }
   const monthsLeft = goal.deadline ? monthsUntil(goal.deadline) : (goal.months||12);
   goal.months = monthsLeft;
   goal.monthlyRate = monthsLeft>0 ? Math.ceil(remaining/monthsLeft) : 0;
@@ -5267,7 +5466,10 @@ function applyGoalAdaptation(item){
     showToast('🎯 '+goal.emoji+' '+goal.name+' — cel osiągnięty! Zostało '+fmt(overflow)+' zł nadwyżki.');
     setTimeout(()=>openTriumphModal(overflow,'item_overflow'), 600);
   } else {
-    showToast('💰 +'+fmt(applied)+' zł → '+goal.emoji+' '+goal.name+'  (rata ↓ '+fmt(goal.monthlyRate)+' zł/mies.)');
+    showToast('💰 +'+fmt(applied)+' zł → '+goal.emoji+' '+goal.name
+      + (isGoalAuto(goal)
+          ? '  (rata ↓ '+fmt(goal.monthlyRate)+' zł/mies.)'
+          : '  (zostało '+fmt(Math.max((goal.target||0)-(goal.saved||0),0))+' zł)'));
   }
 }
 
@@ -5283,8 +5485,9 @@ function openCelDeposit(id){
   if(!goal) return;
   _depositGoalId=id;
   const liveRate=getGoalMonthlyRate(goal);
-  document.getElementById('cd-deposit-subtitle').textContent=
-    'Ile realnie odłożyłeś na "'+goal.name+'"? Zaplanowana rata: '+fmt(liveRate)+' zł/mies.';
+  document.getElementById('cd-deposit-subtitle').textContent = isGoalAuto(goal)
+    ? 'Ile realnie odłożyłeś na "'+goal.name+'"? Zaplanowana rata: '+fmt(liveRate)+' zł/mies.'
+    : 'Ile chcesz teraz przeznaczyć na "'+goal.name+'"? Ten cel nie ma stałej raty.';
   const inp=document.getElementById('cd-deposit-amount');
   inp.value = liveRate>0 ? liveRate : '';
   document.getElementById('cd-deposit-preview').textContent='';
@@ -5307,7 +5510,9 @@ function onDepositAmountChange(){
 
   preview.innerHTML = overflow>0
     ? 'Cel zostanie w pełni zrealizowany 🎯 Nadwyżka '+fmt(overflow)+' zł — zaproponujemy inny cel.'
-    : 'Po wpłacie: <strong>'+fmt(newSaved)+' zł</strong> / '+fmt(goal.target||0)+' zł · nowa rata: <strong>'+fmt(newRate)+' zł/mies.</strong>';
+    : 'Po wpłacie: <strong>'+fmt(newSaved)+' zł</strong> / '+fmt(goal.target||0)+' zł'
+      + (isGoalAuto(goal) ? ' · nowa rata: <strong>'+fmt(newRate)+' zł/mies.</strong>'
+                          : ' · zostanie <strong>'+fmt(Math.max((goal.target||0)-newSaved,0))+' zł</strong>');
 }
 
 function submitCelDeposit(){
@@ -7271,6 +7476,10 @@ document.addEventListener('visibilitychange',()=>{
     // Cache is populated — refresh live state
     cats=loadCats();
     garazItems=loadItems();
+    // No PIN on this device yet (first launch, or after a reset) — ask the
+    // user to choose one instead of accepting some built-in code.
+    if(!_cGet('salvage_pin', null)) startPinSetup();
+    else setPinPrompt('');
   }catch(e){
     console.error('[Salvage] IDB boot failed, continuing with defaults',e);
   }
