@@ -22,13 +22,16 @@ Aplikacja nie wymaga serwera ani backendu — całość działa lokalnie.
 | `index.html` | Cała aplikacja (HTML + CSS + JS w jednym pliku) |
 | `docs/AUDIT.md` | Audyt działania mechanizmów + lista poprawek |
 | `docs/ZMIANY.md` | Zmiany funkcjonalne: PIN na urządzeniu, tryby finansowania celów |
+| `docs/PRZEGLAD.md` | Przegląd całej aplikacji: 8 błędów i 6 poprawek UX |
+| `docs/FUNKCJE-CYKLICZNE-HISTORIA.md` | Wydatki cykliczne i historia zamkniętych miesięcy |
 | `docs/koncepcja-apki-edukacyjnej.md` | Koncepcja aplikacji edukacyjnej I-sTep |
 | `docs/README-HANDOFF.md` | Notatki handoff do prototypów |
 | `prototypy/` | Wcześniejsze prototypy HTML (I-sTep, logo, onboarding) |
 
 ## Główne moduły
 
-- **Budżet** — kategorie z limitami, koszty, elastyczne łatanie przekroczeń
+- **Budżet** — kategorie z limitami, koszty, elastyczne łatanie przekroczeń,
+  wydatki cykliczne (czynsz, abonamenty) i historia zamkniętych miesięcy
 - **Garaż** — przedmioty do sprzedaży (zdjęcie, cena, status), powiązanie z celami
 - **Cele** — cele oszczędnościowe w dwóch trybach: automatycznym (stała rata
   rezerwowana w budżecie) albo elastycznym (dowolne wpłaty, bez rezerwacji)

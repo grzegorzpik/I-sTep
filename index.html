@@ -350,6 +350,40 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
 .life-bar.over{background:var(--neon-red);width:100%!important;}
 
 /* Overflow badge */
+/* ══ RECURRING EXPENSES + MONTH HISTORY ════════════════════════ */
+.rec-row{display:flex;align-items:center;gap:11px;padding:12px 14px;margin-bottom:8px;
+  background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:14px;cursor:pointer;}
+.rec-row:active{background:var(--bg-card2);}
+.rec-row.paused{opacity:.55;}
+.rec-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;font-size:19px;flex-shrink:0;background:rgba(108,92,231,.1);}
+.rec-info{flex:1;min-width:0;}
+.rec-name{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+.rec-amount{font-size:15px;font-weight:800;white-space:nowrap;flex-shrink:0;}
+.rec-state{font-size:9px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 7px;border-radius:20px;margin-left:6px;}
+.rec-state.on{background:rgba(0,179,126,.12);color:var(--neon-emerald);}
+.rec-state.off{background:rgba(20,19,31,.07);color:var(--text-muted);}
+.rec-empty,.mh-empty{font-size:12px;color:var(--text-muted);line-height:1.5;
+  padding:16px;text-align:center;background:var(--bg-card);border:1px dashed var(--border-subtle);
+  border-radius:14px;}
+.mh-row{display:flex;align-items:center;gap:11px;padding:13px 14px;margin-bottom:8px;
+  background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:14px;cursor:pointer;}
+.mh-row:active{background:var(--bg-card2);}
+.mh-info{flex:1;min-width:0;}
+.mh-month{font-size:13px;font-weight:700;text-transform:capitalize;}
+.mh-sub{font-size:11px;color:var(--text-muted);margin-top:1px;}
+.mh-amount{text-align:right;flex-shrink:0;}
+.mh-spent{font-size:15px;font-weight:800;}
+.mh-saved{font-size:11px;font-weight:700;color:var(--neon-emerald);margin-top:1px;}
+.mhd-cat-row{display:flex;align-items:center;gap:10px;padding:9px 0;
+  border-bottom:1px solid rgba(20,19,31,.06);}
+.mhd-cat-row:last-child{border-bottom:none;}
+.mhd-cat-bar{height:5px;border-radius:3px;background:rgba(20,19,31,.06);
+  overflow:hidden;margin-top:5px;}
+.mhd-cat-fill{height:100%;border-radius:3px;}
+
 /* ══ GOAL FUNDING MODE ═════════════════════════════════════════ */
 .fund-toggle{display:flex;flex-direction:column;gap:8px;}
 .fund-opt{display:flex;flex-direction:column;gap:3px;text-align:left;width:100%;
@@ -1292,6 +1326,54 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
   </div>
 </div>
 
+<!-- Wydatek cykliczny — dodawanie / edycja -->
+<div class="modal-overlay" id="modal-recurring" onclick="bgClose(event,this)">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="rec-modal-title">Wydatek cykliczny</div>
+      <button class="modal-close" onclick="closeModal('modal-recurring')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rec-edit-id">
+      <div class="form-group">
+        <label class="form-label">Nazwa</label>
+        <input class="form-input" id="rec-name" type="text" maxlength="40" placeholder="np. Czynsz, Netflix, rata za auto">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategoria</label>
+        <select class="form-input" id="rec-cat"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Kwota (zł)</label>
+          <input class="form-input" id="rec-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0">
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Dzień miesiąca</label>
+          <input class="form-input" id="rec-day" type="number" inputmode="numeric" min="1" max="28" value="1">
+        </div>
+      </div>
+      <div class="fund-manual-note" id="rec-note" style="margin-bottom:18px;"></div>
+      <button class="modal-submit" onclick="submitRecurring()">Zapisz</button>
+      <button class="modal-submit" id="rec-delete-btn" onclick="deleteRecurring()"
+        style="display:none;margin-top:8px;background:rgba(255,107,91,.12);color:var(--neon-red);">Usuń wydatek cykliczny</button>
+    </div>
+  </div>
+</div>
+
+<!-- Szczegóły zamkniętego miesiąca -->
+<div class="modal-overlay" id="modal-month-detail" onclick="bgClose(event,this)">
+  <div class="modal-sheet" style="max-height:88vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="position:sticky;top:0;background:var(--bg-card);z-index:10;">
+      <div class="modal-title" id="mhd-title">Miesiąc</div>
+      <button class="modal-close" onclick="closeModal('modal-month-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="mhd-body"></div>
+  </div>
+</div>
+
 <!-- Forgotten PIN. There is no server and no account, so the PIN cannot be
      recovered or e-mailed — the only way back in is wiping local data. Say so
      plainly instead of pretending there is a softer option. -->
@@ -1602,6 +1684,20 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg-deep);
       </div>
 
       <div class="cat-list" id="cat-list"></div>
+
+      <!-- ══ WYDATKI CYKLICZNE ══════════════════════════════════ -->
+      <div class="dash-section-label" style="margin:26px 20px 4px;">Wydatki cykliczne</div>
+      <div class="cat-hint" id="rec-hint">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        Czynsz, abonamenty, raty — dopisują się same co miesiąc
+      </div>
+      <div id="rec-list" style="padding:0 20px;"></div>
+      <button class="budzet-add-btn" onclick="openRecurringModal()">+ Dodaj wydatek cykliczny</button>
+
+      <!-- ══ HISTORIA MIESIĘCY ══════════════════════════════════ -->
+      <div class="dash-section-label" style="margin:26px 20px 4px;">Historia miesięcy</div>
+      <div id="mh-list" style="padding:0 20px 8px;"></div>
+      <div id="mh-expand-wrap" style="padding:0 20px 20px;"></div>
     </div>
 
     <!-- PROFIL -->
@@ -2676,6 +2772,12 @@ function saveItems(items){
   });
 }
 
+function loadRecurring(){ return _cGet('salvage_recurring',[]); }
+function saveRecurring(r){ _cSet('salvage_recurring',r); }
+
+function loadMonthHistory(){ return _cGet('salvage_month_history',[]); }
+function saveMonthHistory(h){ _cSet('salvage_month_history',h); }
+
 function loadGoals(){ return _cGet('salvage_goals',[]); }
 function saveGoals(g){ _cSet('salvage_goals',g); }
 
@@ -2732,7 +2834,8 @@ const LS_KEYS=[
   'salvage_last_green','salvage_green_weeks','salvage_last_month',
   'salvage_toast_history','salvage_badges','salvage_drag_hint_seen',
   'salvage_last_month_spent','salvage_has_profile_photo','salvage_pin',
-  'salvage_cycle_day','salvage_clean_month_just_closed'
+  'salvage_cycle_day','salvage_clean_month_just_closed',
+  'salvage_recurring','salvage_month_history'
 ];
 async function migrateFromLocalStorage(){
   const migrated=await dbGet('_idb_migrated');
@@ -2948,9 +3051,12 @@ function showApp(){
   } else {
     revealAppNow();
   }
-  cats=loadCats(); renderBudget();
+  cats=loadCats();
+  const recAdded=applyRecurringExpenses();
+  renderBudget();
   garazItems=loadItems(); renderGaraz();
   renderCele(); renderStart(); renderProfil();
+  if(recAdded) setTimeout(()=>showToast('🔄 Dopisano '+recAdded+' '+(recAdded===1?'wydatek cykliczny':'wydatki cykliczne')),1400);
   // Check for new month after app renders
   setTimeout(checkMonthlyReset, 1100);
 }
@@ -3016,10 +3122,67 @@ function getCycleSpendByCat(cycleId){
   });
   return sums;
 }
+// Human-readable name of a cycle id, e.g. '2026-8' → 'sierpień 2026'.
+function cycleLabel(cycleId){
+  const [y,m]=String(cycleId).split('-').map(Number);
+  return new Date(y,m-1,1).toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+}
+// Expense ids double as DOM handles for deletion, so they must not collide —
+// two entries created in the same millisecond (a batch of recurring ones) would
+// otherwise share an id and delete each other.
+function newExpenseId(existing){
+  const used=new Set((existing||[]).map(e=>e.id));
+  let id=Date.now();
+  while(used.has(id)) id++;
+  return id;
+}
 function getCycleSpendTotal(cycleId){
   const sums=getCycleSpendByCat(cycleId);
   return parseFloat(Object.values(sums).reduce((s,v)=>s+v,0).toFixed(2));
 }
+/* ════════════════════════════════════════════════════════════════
+   WYDATKI CYKLICZNE
+   A recurring entry is a template, not an expense. Once per cycle, on or
+   after its due day, it writes ONE real expense into the ledger and stamps
+   itself with that cycle id — so reopening the app ten times a day cannot
+   charge the rent ten times.
+════════════════════════════════════════════════════════════════ */
+// The single calendar date in the CURRENT cycle that carries this day-of-month.
+// Cycles can straddle a month boundary (payday on the 10th), so the date may
+// land in either half; with day and cycleDay both capped at 28, exactly one of
+// the two candidates falls inside the window.
+function getRecurringDueDate(day, now){
+  now = now || new Date();
+  const start=getCycleStart(now), end=getNextCycleStart(now);
+  const d=Math.min(Math.max(parseInt(day)||1,1),28);
+  let c=new Date(start.getFullYear(), start.getMonth(), d);
+  if(c<start || c>=end) c=new Date(end.getFullYear(), end.getMonth(), d);
+  return c;
+}
+
+function applyRecurringExpenses(){
+  const recs=loadRecurring();
+  if(!recs.length) return 0;
+  const now=new Date();
+  const cycleId=getCurrentCycleId(now);
+  const catIds=new Set(cats.map(c=>c.id));
+  const expenses=loadExpenses();
+  let added=0;
+  recs.forEach(r=>{
+    if(!r.active) return;
+    if(r.lastAppliedCycle===cycleId) return;   // already charged this cycle
+    if(!catIds.has(r.catId)) return;           // category gone — leave it alone
+    const due=getRecurringDueDate(r.day, now);
+    if(due>now) return;                        // not due yet
+    expenses.push({id:newExpenseId(expenses), catId:r.catId, amount:r.amount,
+      comment:r.name, ts:due.toISOString(), recurringId:r.id});
+    r.lastAppliedCycle=cycleId;
+    added++;
+  });
+  if(added){ saveExpenses(expenses); saveRecurring(recs); }
+  return added;
+}
+
 function checkMonthlyReset(){
   const now=new Date();
   const currentMonth=getCurrentCycleId(now);
@@ -3105,6 +3268,29 @@ function doMonthClose(doReset, currentMonth, closingMonth){
     addXP('month_close','Auto-zamknięcie miesiąca (wydano: '+fmt(totalSpent)+' zł, zaoszczędzono: '+fmt(saved)+' zł)');
     // Remember this month's total so next month can show an honest trend
     _cSet('salvage_last_month_spent', totalSpent);
+    // Full record of the month that's ending, so it can be looked at later.
+    // Built from the ledger + the limits as they stood at close, because both
+    // are about to be rebased onto the new cycle.
+    const known=new Set(cats.map(c=>c.id));
+    const otherSpent=parseFloat(Object.keys(spendByCat)
+      .filter(id=>!known.has(id))
+      .reduce((sum,id)=>sum+spendByCat[id],0).toFixed(2));
+    const entry={
+      cycleId: closingMonth,
+      label: cycleLabel(closingMonth),
+      closedAt: new Date().toISOString(),
+      income, totalSpent, saved,
+      overCount: cats.filter(c=>c.limit>0&&(spendByCat[c.id]||0)>c.limit).length,
+      cats: cats.map(c=>({id:c.id,name:c.name,emoji:c.emoji,limit:c.limit,spent:spendByCat[c.id]||0}))
+                .filter(c=>c.spent>0)
+                .sort((a,b)=>b.spent-a.spent),
+      untouched: cats.filter(c=>!(spendByCat[c.id]>0)).length,
+    };
+    if(otherSpent>0) entry.cats.push({id:'_other',name:'Poza kategoriami',emoji:'📦',limit:0,spent:otherSpent});
+    const hist=loadMonthHistory().filter(h=>h.cycleId!==closingMonth);
+    hist.unshift(entry);
+    if(hist.length>36) hist.length=36;   // three years is plenty
+    saveMonthHistory(hist);
     // Zero all category spending
     cats=cats.map(c=>({...c,spent:0}));
     saveCats(cats);
@@ -3278,6 +3464,8 @@ function recalcCatSpent(){
 
 function renderBudget(){
   recalcCatSpent();
+  renderRecurring();
+  renderMonthHistory();
   const list=document.getElementById('cat-list');
   list.innerHTML='';
   const {reserve,totalSpent,totalLimit}=getBudgetTotals();
@@ -3734,6 +3922,7 @@ function catdDelete(){
   const cat=cats.find(c=>c.id===catdCatId);
   if(!cat) return;
   const linked=loadExpenses().filter(e=>e.catId===cat.id);
+  const linkedRec=loadRecurring().filter(r=>r.catId===cat.id);
   closeModal('modal-cat-detail');
   setTimeout(()=>{
     showDeleteConfirm(cat.name, ()=>{
@@ -3742,13 +3931,15 @@ function catdDelete(){
       // Drop the category's expenses as well. Left behind they are invisible
       // in the UI but still counted when the month is closed.
       if(linked.length) saveExpenses(loadExpenses().filter(e=>e.catId!==cat.id));
+      if(linkedRec.length) saveRecurring(loadRecurring().filter(r=>r.catId!==cat.id));
       renderBudget();
       renderStart();
       showToast('✓ Kategoria „'+esc(cat.name)+'" usunięta'
         + (linked.length?' wraz z '+linked.length+' wydatk'+(linked.length===1?'iem':'ami'):''));
-    }, linked.length
-      ? 'Razem z kategorią usuniętych zostanie '+linked.length+' zapisanych wydatków ('+fmt(linked.reduce((s,e)=>s+(e.amount||0),0))+' zł).'
-      : null);
+    }, [
+      linked.length ? 'Razem z kategorią usuniętych zostanie '+linked.length+' zapisanych wydatków ('+fmt(linked.reduce((s,e)=>s+(e.amount||0),0))+' zł).' : '',
+      linkedRec.length ? linkedRec.length+' '+(linkedRec.length===1?'wydatek cykliczny przestanie':'wydatki cykliczne przestaną')+' się dopisywać.' : '',
+    ].filter(Boolean).join(' ') || null);
   },340);
 }
 
@@ -3870,7 +4061,7 @@ function submitCost(){
   saveCats(cats);
   /* save expense record */
   const expenses=loadExpenses();
-  expenses.push({id:Date.now(),catId,amount:amtRaw,comment,ts});
+  expenses.push({id:newExpenseId(expenses),catId,amount:amtRaw,comment,ts});
   saveExpenses(expenses);
   closeModal('modal-koszt');
   renderBudget();
@@ -3881,6 +4072,267 @@ function submitCost(){
   if(cat.spent>cat.limit){
     setTimeout(()=>openPatchModal(catId),600);
   }
+}
+
+/* ── Historia zamkniętych miesięcy ─────────────────────────── */
+let mhExpanded=false;
+const MH_VISIBLE=3;
+
+function renderMonthHistory(){
+  const list=document.getElementById('mh-list');
+  const wrap=document.getElementById('mh-expand-wrap');
+  if(!list) return;
+  const hist=loadMonthHistory();
+  if(wrap) wrap.innerHTML='';
+  if(!hist.length){
+    list.innerHTML=`<div class="mh-empty">Jeszcze żaden miesiąc nie został zamknięty.<br>
+      Pierwsze podsumowanie pojawi się tu po najbliższej wypłacie.</div>`;
+    return;
+  }
+  const visible = mhExpanded ? hist : hist.slice(0,MH_VISIBLE);
+  list.innerHTML=visible.map(h=>{
+    const over=h.overCount>0;
+    return `<div class="mh-row" onclick="openMonthDetail('${h.cycleId}')">
+      <div class="mh-info">
+        <div class="mh-month">${esc(h.label||cycleLabel(h.cycleId))}</div>
+        <div class="mh-sub">${over
+          ? '<span style="color:var(--neon-red);font-weight:700">'+h.overCount+' '+(h.overCount===1?'kategoria przekroczona':'kategorie przekroczone')+'</span>'
+          : 'Wszystko w limitach'}</div>
+      </div>
+      <div class="mh-amount">
+        <div class="mh-spent">${fmt(h.totalSpent)} zł</div>
+        ${h.saved>0?`<div class="mh-saved">+${fmt(h.saved)} zł</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  if(hist.length>MH_VISIBLE && wrap){
+    const hidden=hist.length-MH_VISIBLE;
+    wrap.innerHTML=`<button class="expand-more-btn" onclick="toggleMonthHistory()">
+      <span class="expand-chevron${mhExpanded?' open':''}">▼</span> ${mhExpanded?'Zwiń':'Rozwiń '+hidden+' więcej'}
+    </button>`;
+  }
+}
+function toggleMonthHistory(){ mhExpanded=!mhExpanded; renderMonthHistory(); }
+
+function openMonthDetail(cycleId){
+  const h=loadMonthHistory().find(x=>x.cycleId===cycleId);
+  if(!h) return;
+  const monthName=h.label||cycleLabel(h.cycleId);
+  document.getElementById('mhd-title').textContent=monthName.charAt(0).toUpperCase()+monthName.slice(1);
+  const maxSpent=Math.max(...h.cats.map(c=>c.spent), 1);
+  const rows=h.cats.map(c=>{
+    const over=c.limit>0&&c.spent>c.limit;
+    const color=over?'var(--neon-red)':(c.limit>0&&c.spent/c.limit>=0.85?'var(--neon-amber)':'var(--neon-emerald)');
+    return `<div class="mhd-cat-row">
+      <div style="font-size:19px;flex-shrink:0;">${c.emoji||'📦'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <span style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(c.name)}</span>
+          <span style="font-size:13px;font-weight:800;color:${over?'var(--neon-red)':'var(--text-primary)'};white-space:nowrap;">${fmt(c.spent)} zł</span>
+        </div>
+        <div class="mhd-cat-bar"><div class="mhd-cat-fill" style="width:${(c.spent/maxSpent*100).toFixed(1)}%;background:${color}"></div></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">
+          ${c.limit>0 ? 'Limit '+fmt(c.limit)+' zł'+(over?' · przekroczono o '+fmt(c.spent-c.limit)+' zł':'') : 'Bez limitu'}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('mhd-body').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:18px;">
+      <div style="flex:1;padding:12px;border-radius:12px;background:var(--bg-card2);text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);">Wydano</div>
+        <div style="font-size:17px;font-weight:800;margin-top:3px;">${fmt(h.totalSpent)} zł</div>
+      </div>
+      <div style="flex:1;padding:12px;border-radius:12px;background:var(--bg-card2);text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);">Budżet</div>
+        <div style="font-size:17px;font-weight:800;margin-top:3px;">${fmt(h.income)} zł</div>
+      </div>
+      <div style="flex:1;padding:12px;border-radius:12px;background:rgba(0,179,126,.1);text-align:center;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);">Zostało</div>
+        <div style="font-size:17px;font-weight:800;margin-top:3px;color:var(--neon-emerald);">${fmt(h.saved)} zł</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">Podział na kategorie</div>
+    ${rows||'<div class="mh-empty">Brak wydatków w tym miesiącu.</div>'}
+    ${h.untouched>0?`<div style="font-size:11px;color:var(--text-muted);margin-top:12px;text-align:center;">
+      ${h.untouched} ${h.untouched===1?'kategoria bez żadnego wydatku':'kategorii bez żadnego wydatku'}
+    </div>`:''}`;
+  openModal('modal-month-detail');
+}
+
+/* ── Wydatki cykliczne: UI ─────────────────────────────────── */
+function renderRecurring(){
+  const list=document.getElementById('rec-list');
+  const hint=document.getElementById('rec-hint');
+  if(!list) return;
+  const recs=loadRecurring();
+  if(hint) hint.style.display = recs.length ? 'none' : '';
+  if(!recs.length){
+    list.innerHTML=`<div class="rec-empty">Nic jeszcze nie powtarza się co miesiąc.<br>
+      Dodaj czynsz albo abonament, a wpisze się sam.</div>`;
+    return;
+  }
+  const cycleId=getCurrentCycleId();
+  list.innerHTML=recs.map(r=>{
+    const cat=cats.find(c=>c.id===r.catId);
+    const due=getRecurringDueDate(r.day);
+    const charged=r.lastAppliedCycle===cycleId;
+    let sub;
+    if(!cat) sub='Kategoria usunięta — dotknij, aby poprawić';
+    else if(!r.active) sub='Wstrzymany · '+esc(cat.name);
+    else if(charged) sub='Dopisano '+due.toLocaleDateString('pl-PL',{day:'numeric',month:'short'})+' · '+esc(cat.name);
+    else sub='Dopisze się '+due.toLocaleDateString('pl-PL',{day:'numeric',month:'short'})+' · '+esc(cat.name);
+    return `<div class="rec-row${r.active?'':' paused'}" onclick="openRecurringModal('${r.id}')">
+      <div class="rec-icon">${cat?cat.emoji:'⚠️'}</div>
+      <div class="rec-info">
+        <div class="rec-name">${esc(r.name)}<span class="rec-state ${r.active?'on':'off'}">${r.active?(charged?'opłacone':'co mies.'):'pauza'}</span></div>
+        <div class="rec-sub">${sub}</div>
+      </div>
+      <div class="rec-amount">${fmt(r.amount)} zł</div>
+    </div>`;
+  }).join('');
+}
+
+let editingRecId=null;
+function openRecurringModal(id){
+  if(!cats.length){ showToast('Najpierw dodaj choć jedną kategorię'); return; }
+  editingRecId=id||null;
+  const rec=id?loadRecurring().find(r=>r.id===id):null;
+  document.getElementById('rec-modal-title').textContent=rec?'Edytuj wydatek cykliczny':'Nowy wydatek cykliczny';
+  document.getElementById('rec-edit-id').value=id||'';
+  document.getElementById('rec-name').value=rec?rec.name:'';
+  document.getElementById('rec-amount').value=rec?rec.amount:'';
+  document.getElementById('rec-day').value=rec?rec.day:1;
+  const sel=document.getElementById('rec-cat');
+  sel.innerHTML=cats.map(c=>`<option value="${c.id}">${c.emoji} ${esc(c.name)}</option>`).join('');
+  sel.value = (rec && cats.some(c=>c.id===rec.catId)) ? rec.catId : (cats[0]?.id||'');
+  const delBtn=document.getElementById('rec-delete-btn');
+  delBtn.style.display = rec ? 'block' : 'none';
+  delBtn.textContent = rec && rec.active ? 'Wstrzymaj lub usuń…' : 'Usuń wydatek cykliczny';
+  updateRecurringNote();
+  ['rec-day','rec-amount'].forEach(elId=>{
+    const el=document.getElementById(elId);
+    el.oninput=updateRecurringNote;
+  });
+  openModal('modal-recurring');
+}
+
+// Says in plain words when the next charge lands, so nobody has to reason
+// about payday-aligned cycles in their head.
+function updateRecurringNote(){
+  const note=document.getElementById('rec-note');
+  if(!note) return;
+  const day=parseInt(document.getElementById('rec-day').value)||1;
+  const due=getRecurringDueDate(Math.min(Math.max(day,1),28));
+  const now=new Date();
+  const rec=editingRecId?loadRecurring().find(r=>r.id===editingRecId):null;
+  const alreadyCharged = rec && rec.lastAppliedCycle===getCurrentCycleId();
+  const dateStr=due.toLocaleDateString('pl-PL',{day:'numeric',month:'long'});
+  const todayMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if(alreadyCharged){
+    note.innerHTML='W tym cyklu ten wydatek został już dopisany. Zmiany zadziałają od następnego miesiąca.';
+  } else if(due>=todayMidnight){
+    note.innerHTML= due.getTime()===todayMidnight.getTime()
+      ? 'Termin wypada <strong>dziś</strong> — wpis pojawi się od razu po zapisaniu, potem co miesiąc tego samego dnia.'
+      : 'Pierwszy wpis pojawi się <strong>'+dateStr+'</strong>, potem co miesiąc tego samego dnia.';
+  } else {
+    note.innerHTML='Termin w tym cyklu (<strong>'+dateStr+'</strong>) już minął, więc pierwszy wpis pojawi się w przyszłym miesiącu. Ten miesiąc wpisz ręcznie, jeśli trzeba.';
+  }
+}
+
+function submitRecurring(){
+  const name=document.getElementById('rec-name').value.trim();
+  const catId=document.getElementById('rec-cat').value;
+  const amount=parseFloat(document.getElementById('rec-amount').value);
+  const dayRaw=parseInt(document.getElementById('rec-day').value)||1;
+  const day=Math.min(Math.max(dayRaw,1),28);
+  if(!name){ showToast('Podaj nazwę'); return; }
+  if(!amount||amount<=0){ showToast('Podaj kwotę większą niż 0'); return; }
+  if(amount>1000000){ showToast('Kwota wygląda na pomyłkę — maks. 1 000 000 zł'); return; }
+  if(!cats.some(c=>c.id===catId)){ showToast('Wybierz kategorię'); return; }
+
+  const recs=loadRecurring();
+  const cycleId=getCurrentCycleId();
+  if(editingRecId){
+    const idx=recs.findIndex(r=>r.id===editingRecId);
+    if(idx>-1) recs[idx]={...recs[idx],name,catId,amount,day};
+    showToast('✓ Zapisano');
+  } else {
+    // If this cycle's due date has already passed, start next month instead of
+    // charging retroactively — the person has probably already entered it by hand.
+    // Compare whole days: the due date is midnight, so measuring it against the
+    // current time would count an entry due TODAY as already missed.
+    const due=getRecurringDueDate(day);
+    const now=new Date();
+    const todayMidnight=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const missed=due<todayMidnight;
+    recs.push({id:'rec_'+Date.now(),name,catId,amount,day,active:true,
+      lastAppliedCycle: missed?cycleId:null, createdAt:new Date().toISOString()});
+    showToast(missed?'Dodano — pierwszy wpis w przyszłym miesiącu':'✓ Wydatek cykliczny dodany');
+  }
+  saveRecurring(recs);
+  closeModal('modal-recurring');
+  editingRecId=null;
+  const added=applyRecurringExpenses();
+  renderBudget();
+  renderStart();
+  if(added) showToast('🔄 Dopisano do budżetu: '+fmt(amount)+' zł');
+}
+
+function deleteRecurring(){
+  const rec=loadRecurring().find(r=>r.id===editingRecId);
+  if(!rec) return;
+  const id=editingRecId;
+  closeModal('modal-recurring');
+  setTimeout(()=>{
+    if(rec.active){
+      // Pausing is almost always what people mean — an ended subscription
+      // shouldn't erase the months it was genuinely paid.
+      showPauseOrDeleteRecurring(rec);
+    } else {
+      showDeleteConfirm(rec.name, ()=>{
+        saveRecurring(loadRecurring().filter(r=>r.id!==id));
+        renderBudget();
+        showToast('Wydatek cykliczny usunięty');
+      }, 'Wydatki już dopisane do budżetu zostaną — znika tylko automatyczne powtarzanie.');
+    }
+  },340);
+}
+
+function showPauseOrDeleteRecurring(rec){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;z-index:900;background:rgba(20,19,31,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;';
+  overlay.innerHTML=`<div style="background:#FFFFFF;border-radius:20px;padding:26px 22px;max-width:340px;width:100%;">
+    <div style="font-size:17px;font-weight:700;margin-bottom:6px;text-align:center;">„${esc(rec.name)}"</div>
+    <div style="font-size:13px;color:#94a3b8;line-height:1.5;margin-bottom:20px;text-align:center;">
+      Wydatki już dopisane do budżetu zostaną nienaruszone.
+    </div>
+    <button id="rec-pause-btn" style="width:100%;padding:13px;border-radius:12px;border:none;margin-bottom:8px;
+      background:rgba(217,119,6,.14);color:var(--neon-amber);font:inherit;font-size:14px;font-weight:700;cursor:pointer;">
+      Wstrzymaj — przestań dopisywać</button>
+    <button id="rec-del-btn" style="width:100%;padding:13px;border-radius:12px;border:none;margin-bottom:8px;
+      background:rgba(255,107,91,.12);color:var(--neon-red);font:inherit;font-size:14px;font-weight:700;cursor:pointer;">
+      Usuń na stałe</button>
+    <button id="rec-cancel-btn" style="width:100%;padding:13px;border-radius:12px;border:none;
+      background:rgba(20,19,31,.07);color:#94a3b8;font:inherit;font-size:14px;font-weight:600;cursor:pointer;">
+      Anuluj</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close=()=>overlay.remove();
+  overlay.querySelector('#rec-cancel-btn').onclick=close;
+  overlay.addEventListener('click',e=>{ if(e.target===overlay) close(); });
+  overlay.querySelector('#rec-pause-btn').onclick=()=>{
+    const recs=loadRecurring();
+    const r=recs.find(x=>x.id===rec.id);
+    if(r) r.active=false;
+    saveRecurring(recs); close(); renderBudget();
+    showToast('⏸ Wstrzymano — nic się już nie dopisze');
+  };
+  overlay.querySelector('#rec-del-btn').onclick=()=>{
+    saveRecurring(loadRecurring().filter(x=>x.id!==rec.id));
+    close(); renderBudget();
+    showToast('Wydatek cykliczny usunięty');
+  };
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -6334,7 +6786,8 @@ function renderStart(){
     // otherwise we'd be inventing a number. Uses the active budget cycle, not
     // the raw calendar month, so it lines up with a custom payday.
     if(trendEl){
-      const lastMonthSpent=_cGet('salvage_last_month_spent',null);
+      const hist=loadMonthHistory();
+      const lastMonthSpent = hist.length ? hist[0].totalSpent : _cGet('salvage_last_month_spent',null);
       const now=new Date();
       const cycleStart=getCycleStart(now);
       const nextCycle=getNextCycleStart(now);
@@ -7360,7 +7813,8 @@ function executeReset(){
    'salvage_income','user_class','salvage_player_name','salvage_last_green',
    'salvage_green_weeks','salvage_toast_history','salvage_badges','salvage_drag_hint_seen',
    'salvage_last_month_spent','salvage_has_profile_photo','salvage_pin','_idb_migrated',
-   'salvage_last_month','salvage_cycle_day','salvage_clean_month_just_closed'];
+   'salvage_last_month','salvage_cycle_day','salvage_clean_month_just_closed',
+   'salvage_recurring','salvage_month_history'];
   // Clear IDB cache and stores
   keys.forEach(k=>{ delete _cache[k]; dbDel(k); });
   // Clear blob store too (photos)
@@ -7430,6 +7884,7 @@ const BACKUP_KEYS=[
   'salvage_income','user_class','salvage_player_name','salvage_last_green',
   'salvage_last_month','salvage_cycle_day','salvage_green_weeks','salvage_badges',
   'salvage_last_month_spent','salvage_clean_month_just_closed',
+  'salvage_recurring','salvage_month_history',
 ];
 
 function generateBackup(){
